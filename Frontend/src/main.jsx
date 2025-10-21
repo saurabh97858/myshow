@@ -1,23 +1,21 @@
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-import { BrowserRouter, useNavigate } from 'react-router-dom'
-import { ClerkProvider } from '@clerk/clerk-react'
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.jsx";
+import { BrowserRouter, useNavigate } from "react-router-dom";
+import { ClerkProvider } from "@clerk/clerk-react";
+import { AppProvider } from "./context/AppContext";
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 if (!PUBLISHABLE_KEY) {
-  throw new Error('Missing Publishable Key')
+  throw new Error("Missing Publishable Key");
 }
 
-// ✅ Wrapper component to connect Clerk with React Router's navigate
+// ✅ Properly wrap Clerk within Router context
 function ClerkWithRouter({ children }) {
   const navigate = useNavigate();
   return (
-    <ClerkProvider
-      publishableKey={PUBLISHABLE_KEY}
-      navigate={(to) => navigate(to)}
-    >
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} navigate={(to) => navigate(to)}>
       {children}
     </ClerkProvider>
   );
@@ -27,10 +25,12 @@ function Main() {
   return (
     <BrowserRouter>
       <ClerkWithRouter>
-        <App />
+        <AppProvider>
+          <App />
+        </AppProvider>
       </ClerkWithRouter>
     </BrowserRouter>
   );
 }
 
-createRoot(document.getElementById('root')).render(<Main />)
+createRoot(document.getElementById("root")).render(<Main />);

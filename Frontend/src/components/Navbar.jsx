@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import { assets } from '../assets/assets'
 import { MenuIcon, SearchIcon, TicketPlus, XIcon } from 'lucide-react'
 import { UserButton, useUser } from '@clerk/clerk-react'
+import { useAppContext } from '../context/AppContext'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const { user } = useUser()
   const navigate = useNavigate()
+  const { favouriteMovies } = useAppContext()
 
   const navItems = [
     { to: '/', label: 'Home' },
@@ -25,7 +27,7 @@ const Navbar = () => {
         <img src={assets.logo} alt="Logo" className="w-36 h-auto" />
       </Link>
 
-      {/* Desktop Links Container */}
+      {/* Desktop Links */}
       <div className="hidden md:flex gap-0 items-center bg-black/50 px-6 py-2 rounded-full backdrop-blur-md">
         {navItems.map(({ to, label }) => (
           <Link
@@ -53,11 +55,14 @@ const Navbar = () => {
             afterSignOutUrl="/"
             appearance={{ elements: { avatarBox: "w-10 h-10" } }}
           >
-            <UserButton.Action
-              label="My Bookings"
-              labelIcon={<TicketPlus width={15} />}
-              onClick={() => navigate('/my-bookings')}
-            />
+            <UserButton.MenuItems>
+              <button
+                onClick={() => navigate('/my-bookings')}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100"
+              >
+                My Bookings
+              </button>
+            </UserButton.MenuItems>
           </UserButton>
         )}
 
@@ -79,7 +84,7 @@ const Navbar = () => {
           onClick={() => setIsOpen(false)}
         />
 
-        {/* Mobile Links Container */}
+        {/* Mobile Links */}
         <div className="flex flex-col items-center bg-black/50 px-6 py-4 rounded-xl gap-4">
           {navItems.map(({ to, label }) => (
             <Link

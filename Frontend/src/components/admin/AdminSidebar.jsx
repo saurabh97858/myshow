@@ -1,9 +1,11 @@
 import React from 'react';
 import { assets } from '../../assets/assets';
 import { LayoutDashboardIcon, ListCollapseIcon, ListIcon, PlusSquare } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 
 const AdminSidebar = () => {
+  const location = useLocation();
+
   const user = {
     firstName: 'Admin',
     lastName: 'User',
@@ -33,23 +35,23 @@ const AdminSidebar = () => {
       <div className="w-full mt-6">
         {adminNavLinks.map((link, index) => {
           const Icon = link.icon;
+          const isActive = location.pathname === link.path;
+
           return (
             <NavLink
               key={index}
-              to={link.path} end
-              className={({ isActive }) =>
-                `relative flex items-center gap-2 w-full py-2.5 pl-4 text-gray-400 hover:bg-primary/10 ${
-                  isActive ? 'bg-primary/15 text-primary' : ''
-                }`
-              }
+              to={link.path}
+              end
+              className={`relative flex items-center gap-2 w-full py-2.5 pl-4 text-gray-400 hover:bg-primary/10 ${
+                isActive ? 'bg-primary/15 text-primary' : ''
+              }`}
             >
               <Icon className="w-5 h-5" />
               <p>{link.name}</p>
-              {({ isActive }) =>
-                isActive && (
-                  <span className="w-1.5 h-full rounded-r bg-primary absolute right-0 top-0" />
-                )
-              }
+              {/* Active right bar */}
+              {isActive && (
+                <span className="w-1.5 h-full rounded-r bg-primary absolute right-0 top-0" />
+              )}
             </NavLink>
           );
         })}
