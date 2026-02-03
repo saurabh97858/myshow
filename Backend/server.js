@@ -31,9 +31,15 @@ app.use((req, res, next) => {
 });
 
 // ✅ CORS for frontend + Clerk
+// ✅ CORS for frontend + Clerk
 app.use(
   cors({
-    origin: true, // Allow all origins (reflects request origin)
+    origin: [
+      "https://myshow-su42.vercel.app",
+      "https://myshow-wine.vercel.app",
+      "http://localhost:5173",
+      /^https:\/\/myshow-.*\.vercel\.app$/ // Allow all Vercel previews
+    ],
     credentials: true,
   })
 );
