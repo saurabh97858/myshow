@@ -33,17 +33,7 @@ app.use((req, res, next) => {
 // ✅ CORS for frontend + Clerk
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (
-        !origin ||
-        origin.startsWith("http://localhost") ||
-        origin.includes(".vercel.app")
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: true, // Allow all origins (reflects request origin)
     credentials: true,
   })
 );
@@ -63,6 +53,10 @@ app.use('/api/theater', theaterRouter);
 app.use('/api/proxy', proxyRouter);
 
 // ✅ Start server
-app.listen(port, () =>
-  console.log(`✅ Server running at http://localhost:${port}`)
-);
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, () =>
+    console.log(`✅ Server running at http://localhost:${port}`)
+  );
+}
+
+export default app;
