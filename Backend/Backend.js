@@ -11,6 +11,9 @@ import showRouter from './routes/showRoutes.js';
 import bookingRouter from './routes/bookingRoutes.js';
 import adminRouter from './routes/adminRoutes.js';
 import userRouter from './routes/userRoutes.js';
+import movieRouter from './routes/movieRoutes.js';
+import theaterRouter from './routes/theaterRoutes.js';
+import proxyRouter from './routes/proxyRoutes.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,11 +24,23 @@ await connectDB();
 // 🧩 Middlewares
 app.use(express.json());
 
+// 🔍 Request Logger
+app.use((req, res, next) => {
+  console.log(`📢 [${req.method}] ${req.url}`);
+  next();
+});
+
 // ✅ CORS for frontend + Clerk
 app.use(
   cors({
-    origin: "http://localhost:5173", // frontend port
-    credentials: true,               // cookies + auth headers allowed
+    origin: (origin, callback) => {
+      if (!origin || origin.startsWith("http://localhost")) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
   })
 );
 
@@ -35,10 +50,13 @@ app.use(clerkMiddleware());
 // ✅ Routes
 app.get('/', (req, res) => res.send('Server is Live!'));
 app.use('/api/inngest', serve({ client: inngest, functions }));
+app.use('/api/movie', movieRouter);
 app.use('/api/show', showRouter);
 app.use('/api/booking', bookingRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/user', userRouter);
+app.use('/api/theater', theaterRouter);
+app.use('/api/proxy', proxyRouter);
 
 // ✅ Start server
 app.listen(port, () =>

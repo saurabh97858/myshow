@@ -1,9 +1,7 @@
-import { StarIcon } from "lucide-react";
+import { Star, Trash2, Calendar, Clock, Ticket } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
-
-const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 
 const formatRuntime = (minutes) => {
   if (!minutes && minutes !== 0) return null;
@@ -14,65 +12,113 @@ const formatRuntime = (minutes) => {
 
 const MovieCard = ({ movie }) => {
   const navigate = useNavigate();
-  const { image_base_url } = useAppContext();
+  const { isAdmin, deleteMovie } = useAppContext();
 
-  // Determine correct movieId (from MongoDB or TMDB)
-  const movieId = movie._id || movie.id;
+  // Use _id from MongoDB
+  const movieId = movie?._id;
 
-  // Handle missing image safely
-  const posterImage =
-    movie.backdrop_path || movie.poster_path
-      ? `${image_base_url || IMAGE_BASE_URL}${movie.backdrop_path || movie.poster_path}`
-      : "/placeholder.png";
+  if (!movieId) {
+    console.warn("MovieCard received movie without ID:", movie);
+    return null;
+  }
 
-  const releaseYear = movie.release_date
-    ? new Date(movie.release_date).getFullYear()
+  const posterImage = movie.posterUrl || movie.backdropUrl || "/placeholder.png";
+
+  const releaseYear = movie.releaseDate
+    ? new Date(movie.releaseDate).getFullYear()
     : "N/A";
 
   const genres =
     movie.genres && movie.genres.length > 0
-      ? movie.genres.slice(0, 2).map((g) => g.name).join(" | ")
-      : null;
+      ? movie.genres.slice(0, 2).map(g => g.trim())
+      : [];
 
-  const runtime = movie.runtime ? formatRuntime(movie.runtime) : null;
+  const runtime = movie.duration ? formatRuntime(movie.duration) : null;
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    if (confirm(`Are you sure you want to delete "${movie.title}"?`)) {
+      deleteMovie(movieId);
+    }
+  };
+
+  const handleCardClick = () => {
+    navigate(`/movies/${movieId}`);
+    window.scrollTo(0, 0);
+  };
 
   return (
-    <div className="flex flex-col justify-between p-3 bg-gray-800 rounded-2xl hover:-translate-y-1 transition duration-300 w-64">
+    <div
+      onClick={handleCardClick}
+      className="group relative w-full aspect-[2/3] rounded-3xl overflow-hidden cursor-pointer shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/5 transition-transform duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
+    >
+      {/* Background Image */}
       <img
-        onClick={() => {
-          navigate(`/movies/${movieId}`);
-          window.scrollTo(0, 0);
-        }}
         src={posterImage}
+        onError={(e) => { e.target.src = "/placeholder.png" }}
         alt={movie.title || "Movie Poster"}
-        className="rounded-lg h-52 w-full object-cover cursor-pointer"
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
       />
 
-      <p className="font-semibold mt-2 truncate">{movie.title || "Untitled"}</p>
+      {/* Gradient Overlay - Always present but stronger at bottom */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-100"></div>
 
-      <p className="text-sm text-gray-400 mt-1">
-        {releaseYear}
-        {genres ? ` • ${genres}` : ""}
-        {runtime ? ` • ${runtime}` : ""}
-      </p>
-
-      <div className="flex items-center justify-between mt-4">
+      {/* Delete Button (Admin Only) */}
+      {isAdmin && (
         <button
-          onClick={() => {
-            navigate(`/movies/${movieId}`);
-            window.scrollTo(0, 0);
-          }}
-          className="px-4 py-2 text-xs bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer"
+          onClick={handleDelete}
+          className="absolute top-4 right-4 z-20 bg-red-500/80 backdrop-blur-md p-2.5 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-600 shadow-lg hover:scale-110"
+          title="Delete Movie"
         >
-          Buy Tickets
+          <Trash2 className="w-4 h-4" />
         </button>
+      )}
 
-        <p className="flex items-center gap-1 text-sm text-gray-400">
-          <StarIcon className="w-4 h-4 text-primary fill-primary" />
-          {movie.vote_average !== undefined && movie.vote_average !== null
-            ? movie.vote_average.toFixed(1)
-            : "N/A"}
-        </p>
+      {/* Content Overlay */}
+      <div className="absolute inset-0 p-5 flex flex-col justify-end z-10">
+        {/* Top Badges (Only visible on hover or if important) */}
+        <div className="absolute top-4 left-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-y-2 group-hover:translate-y-0">
+          <div className="bg-white/10 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider text-white uppercase flex items-center gap-1.5">
+            <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+            {movie.rating ? movie.rating.toFixed(1) : "N/A"}
+          </div>
+        </div>
+
+        {/* Main Info */}
+        <div className="transform transition-transform duration-300 group-hover:-translate-y-2">
+          <h3 className="text-xl font-bold text-white mb-2 leading-tight line-clamp-2 mix-blend-screen font-outfit">
+            {movie.title || "Untitled"}
+          </h3>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-300 mb-4 font-medium">
+            <span>{releaseYear}</span>
+            {runtime && (
+              <>
+                <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
+                <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {runtime}</span>
+              </>
+            )}
+            {genres.length > 0 && (
+              <>
+                <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
+                <span className="truncate max-w-[120px]">{genres.join(", ")}</span>
+              </>
+            )}
+          </div>
+
+          {/* Action Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/theaters/${movieId}`);
+              window.scrollTo(0, 0);
+            }}
+            className="w-full py-3 bg-white text-black font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-all duration-300 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 hover:bg-gray-200 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+          >
+            <Ticket className="w-4 h-4" />
+            Get Tickets
+          </button>
+        </div>
       </div>
     </div>
   );

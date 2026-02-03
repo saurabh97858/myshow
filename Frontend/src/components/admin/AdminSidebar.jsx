@@ -1,6 +1,6 @@
 import React from 'react';
 import { assets } from '../../assets/assets';
-import { LayoutDashboardIcon, ListCollapseIcon, ListIcon, PlusSquare } from 'lucide-react';
+import { LayoutDashboardIcon, ListCollapseIcon, ListIcon, PlusSquare, FilmIcon, Home } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 
 const AdminSidebar = () => {
@@ -14,7 +14,8 @@ const AdminSidebar = () => {
 
   const adminNavLinks = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboardIcon },
-    { name: 'Add Shows', path: '/admin/add-shows', icon: PlusSquare },
+    { name: 'Add Movies', path: '/admin/add-movie', icon: FilmIcon },
+    // { name: 'Add Shows', path: '/admin/add-shows', icon: PlusSquare },
     { name: 'List Shows', path: '/admin/list-shows', icon: ListIcon },
     { name: 'List Bookings', path: '/admin/list-bookings', icon: ListCollapseIcon },
   ];
@@ -42,9 +43,8 @@ const AdminSidebar = () => {
               key={index}
               to={link.path}
               end
-              className={`relative flex items-center gap-2 w-full py-2.5 pl-4 text-gray-400 hover:bg-primary/10 ${
-                isActive ? 'bg-primary/15 text-primary' : ''
-              }`}
+              className={`relative flex items-center gap-2 w-full py-2.5 pl-4 text-gray-400 hover:bg-primary/10 ${isActive ? 'bg-primary/15 text-primary' : ''
+                }`}
             >
               <Icon className="w-5 h-5" />
               <p>{link.name}</p>
@@ -56,6 +56,15 @@ const AdminSidebar = () => {
           );
         })}
       </div>
+
+      {/* Back to Home */}
+      <NavLink
+        to="/"
+        className="relative flex items-center gap-2 w-full py-3 pl-4 text-gray-400 hover:bg-primary/10 hover:text-white mt-auto mb-6 border-t border-gray-700/50"
+      >
+        <Home className="w-5 h-5" />
+        <p>Back to Home</p>
+      </NavLink>
     </div>
   );
 };

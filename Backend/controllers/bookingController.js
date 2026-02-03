@@ -1,10 +1,12 @@
-import Show from "../models/showModel.js";   // ✅ filename fix
-import Booking from "../models/bookingModel.js"; // ✅ filename fix
+import Show from "../models/showModel.js";
+import Booking from "../models/bookingModel.js";
+import User from "../models/userModel.js";
+import { clerkClient } from "@clerk/express";
 
 // Function to check availability of selected seats
 const checkSeatsAvailability = async (showId, selectedSeats) => {
     try {
-        const showData = await Show.findById(showId); // ✅ use Show, not showId
+        const showData = await Show.findById(showId);
         if (!showData) return false;
 
         const occupiedSeats = showData.occupiedSeats;
@@ -19,13 +21,24 @@ const checkSeatsAvailability = async (showId, selectedSeats) => {
 // Create a new booking
 export const createBooking = async (req, res) => {
     try {
-        const { userId } = req.auth(); // ✅ ensure auth middleware provides this
-        const { showId, selectedSeats } = req.body;
+        const { userId } = req.auth;
+        const { showId, selectedSeats, amount, contactDetails, foodItems } = req.body;
 
-        // check if seats are available
-        const isAvailable = await checkSeatsAvailability(showId, selectedSeats);
-        if (!isAvailable) {
-            return res.json({ success: false, message: "Selected seats are not available." });
+        // Sync User to MongoDB
+        try {
+            const clerkUser = await clerkClient.users.getUser(userId);
+            const name = clerkUser.firstName + " " + clerkUser.lastName;
+            const email = clerkUser.emailAddresses[0].emailAddress;
+            const image = clerkUser.imageUrl;
+
+            await User.findByIdAndUpdate(
+                userId,
+                { name, email, image },
+                { upsert: true, new: true }
+            );
+        } catch (userError) {
+            console.error("Failed to sync user:", userError);
+            // Continue booking even if sync fails (though name might be missing in admin)
         }
 
         // get show details
@@ -35,11 +48,15 @@ export const createBooking = async (req, res) => {
         const booking = await Booking.create({
             user: userId,
             show: showId,
-            amount: showData.showPrice * selectedSeats.length,
-            bookedSeats: selectedSeats
+            amount: amount || (showData.priceStandard * selectedSeats.length),
+            bookedSeats: selectedSeats,
+            contactDetails: contactDetails,
+            foodItems: foodItems || []
         });
 
         // mark seats as occupied
+        if (!showData.occupiedSeats) showData.occupiedSeats = {};
+
         selectedSeats.forEach(seat => {
             showData.occupiedSeats[seat] = userId;
         });
@@ -51,7 +68,7 @@ export const createBooking = async (req, res) => {
 
     } catch (error) {
         console.log(error.message);
-        res.json({ success: false, message: error.message }); // ✅ show actual error
+        res.json({ success: false, message: error.message });
     }
 }
 

@@ -2,18 +2,18 @@ import mongoose from "mongoose";
 
 const movieSchema = new mongoose.Schema(
     {
-        _id: { type: String, required: true }, // TMDB movie ID as _id
         title: { type: String, required: true },
-        overview: { type: String, required: true },
-        poster_path: { type: String, required: true },
-        backdrop_path: { type: String, required: true },
-        release_date: { type: String, required: true },
-        original_language: { type: String },
-        tagline: { type: String },
-        genres: { type: Array, required: true },
-        casts: { type: Array, required: true },
-        vote_average: { type: Number, required: true }, // ✅ typo fixed
-        runtime: { type: Number, required: true },
+        description: { type: String, required: true },
+        posterUrl: { type: String, required: true },
+        backdropUrl: { type: String, default: "" },
+        duration: { type: Number, required: true }, // Runtime in minutes
+        language: { type: String, default: "Hindi" },
+        genres: { type: [String], default: [] },
+        releaseDate: { type: Date, required: true },
+        ticketPrice: { type: Number, required: true }, // Price in rupees
+        rating: { type: Number, default: 0, min: 0, max: 10 },
+        casts: { type: [String], default: [] }, // Array of cast names
+        category: { type: String, enum: ['Indian', 'Hollywood'], default: 'Indian' }, // Movie category
     },
     { timestamps: true }
 );

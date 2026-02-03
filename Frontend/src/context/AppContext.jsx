@@ -12,25 +12,35 @@ export const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(null); // null = checking, true = admin, false = not admin
   const [shows, setShows] = useState([]);
+  const [movies, setMovies] = useState([]); // Store all movies
   const [favouriteMovies, setFavouriteMovies] = useState([]);
 
   const image_base_url = import.meta.env.VITE_TMDB_IMAGE_BASE_URL;
 
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
+  const [userLocation, setUserLocation] = useState({ city: "New York", state: "New York" });
+
   // ✅ Check if current user is admin
   const fetchIsAdmin = async () => {
     try {
+      console.log("Checking admin status...");
       const token = await getToken();
-      if (!token) return;
+      console.log("Token available:", !!token);
+
+      if (!token) {
+        setIsAdmin(false);
+        return;
+      }
 
       const { data } = await axios.get("/api/admin/is-admin", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      console.log("Admin check response:", data);
       setIsAdmin(data.isAdmin);
 
       // Redirect non-admin users if trying to access /admin
@@ -44,7 +54,11 @@ export const AppProvider = ({ children }) => {
         error.response ? error.response.data : error.message
       );
       setIsAdmin(false); // Safe fallback
-      toast.error("Failed to check admin status");
+
+      // Only show error toast if user is trying to access admin routes
+      if (location.pathname.startsWith("/admin")) {
+        toast.error("Failed to check admin status");
+      }
     }
   };
 
@@ -53,6 +67,17 @@ export const AppProvider = ({ children }) => {
     try {
       const { data } = await axios.get("/api/show/all");
       if (data.success) setShows(data.shows);
+      else toast.error(data.message);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // ✅ Fetch all movies
+  const fetchMovies = async () => {
+    try {
+      const { data } = await axios.get("/api/movie/all");
+      if (data.success) setMovies(data.movies);
       else toast.error(data.message);
     } catch (error) {
       console.error(error);
@@ -74,9 +99,30 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // Fetch shows on mount
+  // ✅ Delete movie (Admin only)
+  const deleteMovie = async (movieId) => {
+    try {
+      const token = await getToken();
+      const { data } = await axios.delete(`/api/movie/delete/${movieId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (data.success) {
+        toast.success("Movie deleted successfully");
+        fetchMovies(); // Refresh list
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete movie");
+    }
+  };
+
+  // Fetch shows and movies on mount
   useEffect(() => {
     fetchShows();
+    fetchMovies();
   }, []);
 
   // Fetch admin status & favourites when user is available
@@ -95,9 +141,17 @@ export const AppProvider = ({ children }) => {
     navigate,
     isAdmin,
     shows,
+    fetchShows,
+    movies,
+    fetchMovies,
+    deleteMovie,
     favouriteMovies,
     fetchFavouriteMovies,
     image_base_url,
+
+    isLoaded, // Export Clerk loading state
+    userLocation,
+    setUserLocation,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

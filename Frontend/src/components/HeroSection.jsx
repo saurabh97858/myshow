@@ -1,36 +1,86 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { assets } from '../assets/assets'
-import { ArrowBigRight, CalendarIcon, ClockIcon } from 'lucide-react'
+import { ArrowBigRight, ClockIcon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useAppContext } from '../context/AppContext'
 
 const HeroSection = () => {
-    const navigate = useNavigate() 
-  return (
-    <div className='flex flex-col items-start justify-center gap-4 px-6 md:px-16 lg:px-36 bg-[url("/backgroundImage.png")]
-    bg-cover bg-center h-screen' >
-        <img src={assets.marvelLogo} alt=""  className='max-h-11 lg:h-11 mt-20'/>
-      
-<h1 className='text-5xl md:text-[70px] md:leading-18 font-semibold max-w-110'>Gaurdians <br /> of the Galaxy</h1>
-<div className='flex items-center gap-4 text-gray-300'>
-    <span>Action | Adventure | Sci-Fi</span> 
-    <div className='flex items-center gap-1'>
-    <ClockIcon className='w-4.5 h-4.5' /> 2h 8m
-</div>
+    const navigate = useNavigate()
+    const { movies } = useAppContext()
+    const [featuredMovie, setFeaturedMovie] = useState(null)
 
-    <div className='flex items-center gap-1'>
-        < ClockIcon CalendarIcon className='w-4.5 h-4.5'/>2h 8m
-    </div>
+    // Default "Avengers/Guardians" content that the user liked
+    const defaultMovie = {
+        title: "Guardians of the Galaxy",
+        genres: ["Action", "Adventure", "Sci-Fi"],
+        duration: 128, // 2h 8m
+        description: "In a post Marvel Universe, a group of intergalactic criminals must pull together to stop a fanatical warrior with plans to purge the universe.",
+        backdropUrl: "/backgroundImage.png",
+        posterUrl: "/backgroundImage.png",
+        isDefault: true,
+        _id: null
+    }
 
-</div>
-<p className='max-w-md text-gray-300'>
-    In a post Marvel Universe, a group of intergalactic criminals must pull together to stop a fanatical warrior with plans to purge the universe.
-</p>
-<button onClick={() => navigate('/movies')} className='flex items-center gap-1 px-6 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer'>
-    Explore Movies
-    <ArrowBigRight className='w-5 h-5'/>
-</button>
-    </div>
-  )
+    /* 
+    // Commented out to force default Avengers/Guardians background as per user request
+    useEffect(() => {
+        if (movies && movies.length > 0) {
+            const randomIndex = Math.floor(Math.random() * movies.length);
+            setFeaturedMovie(movies[randomIndex]);
+        }
+    }, [movies]) 
+    */
+
+    const movie = featuredMovie || defaultMovie;
+    const bgImage = movie.backdropUrl || movie.posterUrl || "/backgroundImage.png";
+
+    // Check if it's the default movie or has Marvel-related keywords to show the logo
+    const isMarvel = movie.title.toLowerCase().includes('guardians') || movie.title.toLowerCase().includes('avengers') || movie.isDefault;
+
+    return (
+        <div
+            className='flex flex-col items-start justify-center gap-4 px-6 md:px-16 lg:px-36 bg-cover bg-center h-screen text-white'
+            style={{
+                backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 100%), url("${bgImage}")`
+            }}
+        >
+            {isMarvel && <img src={assets.marvelLogo} alt="Marvel" className='max-h-11 lg:h-11 mt-20' />}
+            {!isMarvel && <div className="mt-20"></div>}
+
+            <h1 className='text-5xl md:text-[70px] md:leading-18 font-semibold max-w-110 leading-tight'>
+                {movie.title === "Guardians of the Galaxy" ? (
+                    <>Guardians <br /> of the Galaxy</>
+                ) : (
+                    movie.title
+                )}
+            </h1>
+
+            <div className='flex items-center gap-4 text-gray-300 font-medium'>
+                <span>
+                    {movie.genres && Array.isArray(movie.genres)
+                        ? movie.genres.slice(0, 3).join(" | ")
+                        : "Action | Adventure"}
+                </span>
+
+                <div className='flex items-center gap-1'>
+                    <ClockIcon className='w-4.5 h-4.5' />
+                    {movie.duration ? `${Math.floor(movie.duration / 60)}h ${movie.duration % 60}m` : "2h 8m"}
+                </div>
+            </div>
+
+            <p className='max-w-md text-gray-300 text-sm md:text-base'>
+                {movie.description}
+            </p>
+
+            <button
+                onClick={() => navigate(movie._id ? `/movies/${movie._id}` : '/movies')}
+                className='flex items-center gap-1 px-6 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer mt-4'
+            >
+                {movie._id ? "Book Tickets" : "Explore Movies"}
+                <ArrowBigRight className='w-5 h-5' />
+            </button>
+        </div>
+    )
 }
 
 export default HeroSection

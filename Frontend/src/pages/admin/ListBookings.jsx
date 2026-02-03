@@ -8,27 +8,27 @@ import { useAppContext } from '../../context/AppContext';
 const ListBookings = () => {
   const currency = import.meta.env.VITE_CURRENCY || "₹";
 
-  const {axios, getToken , user} = useAppContext()
+  const { axios, getToken, user } = useAppContext()
 
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const getAllBookings = async () => {
     try {
-      const {data} = await axios.get ("/api/admin/all-bookings", {headers: {Authorization:`Bearer ${await getToken()}`}})
+      const { data } = await axios.get("/api/admin/all-bookings", { headers: { Authorization: `Bearer ${await getToken()}` } })
       setBookings(data.bookings)
     } catch (error) {
       console.error(error);
-      
+
     } setIsLoading(false);
-    
+
   };
 
   useEffect(() => {
     if (user) {
       getAllBookings();
     }
-    
+
   }, [user]);
 
   return !isLoading ? (
@@ -64,8 +64,8 @@ const ListBookings = () => {
                       : "N/A"}
                   </td>
                   <td className="p-2">
-                    {item?.bookSeats
-                      ? Object.keys(item.bookSeats).join(', ')
+                    {item?.bookedSeats?.length > 0
+                      ? item.bookedSeats.join(', ')
                       : "N/A"}
                   </td>
                   <td className="p-2">

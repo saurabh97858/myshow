@@ -15,14 +15,30 @@ export const isAdmin = async (req, res) => {
 // Dashboard Data
 export const getDashboardData = async (req, res) => {
   try {
-    const bookings = await Booking.find({ isPaid: true });
-    const activeShows = await Show.find({ showDateTime: { $gte: new Date() } }).populate("movie");
-    const totalUser = await User.countDocuments();
+    // Execute queries in parallel for performance
+    const [totalUser, uniqueMovies, revenueData, bookingsCount, activeShowsCount] = await Promise.all([
+      User.countDocuments(),
+      // Efficiently find unique movies with active shows
+      Show.aggregate([
+        { $match: { showDateTime: { $gte: new Date() } } },
+        { $group: { _id: "$movie" } }, // Group by movie ID to get unique movies
+        { $lookup: { from: "movies", localField: "_id", foreignField: "_id", as: "movieDetails" } }, // Populate movie details
+        { $unwind: "$movieDetails" },
+        { $project: { _id: "$movieDetails._id", movie: "$movieDetails" } } // Format to match frontend expectation
+      ]),
+      Booking.aggregate([
+        { $match: { isPaid: true } },
+        { $group: { _id: null, total: { $sum: "$amount" } } }
+      ]),
+      Booking.countDocuments({ isPaid: true }),
+      Show.countDocuments({ showDateTime: { $gte: new Date() } })
+    ]);
 
     const dashboardData = {
-      totalBookings: bookings.length,
-      totalRevenue: bookings.reduce((acc, b) => acc + b.amount, 0),
-      activeShows,
+      totalBookings: bookingsCount,
+      totalRevenue: revenueData[0]?.total || 0,
+      activeShows: uniqueMovies, // Send unique movies list directly
+      activeShowsCount: activeShowsCount, // Send total count explicitly
       totalUser,
     };
 
@@ -50,10 +66,12 @@ export const getAllShows = async (req, res) => {
 // Get all bookings
 export const getAllBookings = async (req, res) => {
   try {
+    // Limit to 50 most recent bookings for performance
     const bookings = await Booking.find({})
       .populate("user")
       .populate({ path: "show", populate: { path: "movie" } })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .limit(50);
 
     res.json({ success: true, bookings });
   } catch (error) {

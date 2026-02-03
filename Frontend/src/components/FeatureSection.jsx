@@ -8,14 +8,14 @@ import { useAppContext } from '../context/AppContext'
 
 const FeatureSection = () => {
   const navigate = useNavigate()
-const{shows} = useAppContext()
+  const { movies } = useAppContext()
 
   return (
     <div className="px-6 md:px-16 lg:px-24 xl:px-44 overflow-hidden">
       {/* Header Row */}
       <div className="relative flex items-center justify-between mb-6">
         <BlurCircle top="0" right="88px" />
-        <p className="text-gray-300 font-medium text-lg">Now Showing</p>
+        <p className="text-gray-300 font-medium text-lg">Latest Movies</p>
         <button
           onClick={() => navigate('/movies')}
           className="group flex items-center gap-2 text-sm text-gray-300 hover:text-white transition"
@@ -27,8 +27,8 @@ const{shows} = useAppContext()
 
       {/* Movie Cards */}
       <div className="flex flex-wrap justify-center gap-8 mt-8">
-        {shows.slice(0, 4).map((show) => (
-          <MovieCard key={show._id} movie={show} />
+        {[...movies].reverse().slice(0, 4).map((movie) => (
+          <MovieCard key={movie._id} movie={movie} />
         ))}
       </div>
 

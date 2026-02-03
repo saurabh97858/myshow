@@ -16,6 +16,14 @@ export const assets = {
   profile,
 };
 
+export const groupRows = [
+  ["A", "B"],
+  ["C", "D"],
+  ["E", "F"],
+  ["G", "H"],
+  ["I", "J"],
+];
+
 // ✅ Fixed Dummy trailers (YouTube links + thumbnails)
 export const dummyTrailers = [
   {

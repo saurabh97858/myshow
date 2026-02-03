@@ -1,66 +1,26 @@
-import axios from "axios";
 import Movie from "../models/Movie.js";
 import Show from "../models/showModel.js";
-
-// ✅ Get now-playing movies from TMDB
-export const getNowPlayingMovies = async (req, res) => {
-  try {
-    const { data } = await axios.get(
-      "https://api.themoviedb.org/3/movie/now_playing",
-      {
-        headers: { Authorization: `Bearer ${process.env.TMDB_API_KEY}` },
-      }
-    );
-    res.json({ success: true, movies: data.results });
-  } catch (error) {
-    console.error(error);
-    res.json({ success: false, message: error.message });
-  }
-};
+import Theater from "../models/Theater.js"; // Import Theater model
 
 // ✅ Add a show
 export const addShow = async (req, res) => {
   try {
-    const { movieId, showsInput, showPrice } = req.body;
+    const { movieId, showsInput, priceStandard, pricePremium, priceVIP } = req.body;
 
     // Check if movie exists in DB
-    let movie = await Movie.findById(movieId);
+    const movie = await Movie.findById(movieId);
 
     if (!movie) {
-      // Fetch from TMDB
-      const [detailsRes, creditsRes] = await Promise.all([
-        axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, {
-          headers: { Authorization: `Bearer ${process.env.TMDB_API_KEY}` },
-        }),
-        axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits`, {
-          headers: { Authorization: `Bearer ${process.env.TMDB_API_KEY}` },
-        }),
-      ]);
-
-      const movieData = detailsRes.data;
-      const creditsData = creditsRes.data;
-
-      movie = await Movie.create({
-        _id: movieId,
-        title: movieData.title,
-        overview: movieData.overview,
-        poster_path: movieData.poster_path,
-        backdrop_path: movieData.backdrop_path,
-        genres: movieData.genres,
-        casts: creditsData.cast,
-        release_date: movieData.release_date,
-        original_language: movieData.original_language,
-        tagline: movieData.tagline || "",
-        vote_average: movieData.vote_average,
-        runtime: movieData.runtime,
-      });
+      return res.json({ success: false, message: "Movie not found in database" });
     }
 
-    // Create shows
+    // Create shows with new price structure
     const showsToCreate = showsInput.map(({ date, time }) => ({
       movie: movieId,
       showDateTime: new Date(`${date}T${time}`),
-      showPrice,
+      priceStandard: priceStandard || 100,
+      pricePremium: pricePremium || 200,
+      priceVIP: priceVIP || 300,
       occupiedSeats: {},
     }));
 
@@ -82,8 +42,11 @@ export const getShows = async (req, res) => {
       .populate("movie")
       .sort({ showDateTime: 1 });
 
+    // Filter out shows where movie population failed
+    const validShows = shows.filter(show => show.movie && show.movie._id);
+
     const uniqueShowsMap = new Map();
-    shows.forEach((show) => {
+    validShows.forEach((show) => {
       const movieId = show.movie._id.toString();
       if (!uniqueShowsMap.has(movieId)) uniqueShowsMap.set(movieId, show);
     });
@@ -92,6 +55,52 @@ export const getShows = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
+  }
+};
+
+// Helper to create default shows for a movie (Lazy Initialization)
+const createDefaultShows = async (movieId) => {
+  // FIND A DEFAULT THEATER
+  // We'll pick the first available theater to assign these auto-generated shows to.
+  const defaultTheater = await Theater.findOne();
+
+  if (!defaultTheater) {
+    console.warn("No theater found. Cannot auto-schedule shows.");
+    return; // Better to return than crash, though shows won't be created.
+  }
+
+  // Default settings
+  const defaultTimes = ["10:00", "13:00", "16:00", "19:00", "22:00"];
+  const daysToSchedule = 7; // Schedule for next 7 days (Ultra-Fast Performance)
+  const priceStandard = 150;
+  const pricePremium = 250;
+  const priceVIP = 400;
+
+  const today = new Date();
+  const showsToCreate = [];
+
+  for (let i = 0; i < daysToSchedule; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    const dateStr = date.toISOString().split('T')[0];
+
+    defaultTimes.forEach(time => {
+      showsToCreate.push({
+        movie: movieId,
+        theater: defaultTheater._id, // Assign the theater ID
+        showDateTime: new Date(`${dateStr}T${time}:00`),
+        date: dateStr, // Legacy support
+        time: time,     // Legacy support
+        priceStandard,
+        pricePremium,
+        priceVIP,
+        occupiedSeats: {},
+      });
+    });
+  }
+
+  if (showsToCreate.length > 0) {
+    await Show.insertMany(showsToCreate);
   }
 };
 
@@ -104,7 +113,19 @@ export const getShow = async (req, res) => {
     const movie = await Movie.findById(movieId);
     if (!movie) return res.json({ success: false, message: "Movie not found" });
 
-    const shows = await Show.find({ movie: movieId, showDateTime: { $gte: new Date() } });
+    let shows = await Show.find({ movie: movieId, showDateTime: { $gte: new Date() } }).lean();
+
+    // ⭐ Lazy Load: If no upcoming shows exist, create them for the next 7 days (Fast Mode).
+    // This ensures movies are always bookable even if previous shows expired.
+    if (shows.length === 0) {
+      console.time("Auto-Schedule");
+      console.log(`No upcoming shows found for ${movie.title}. Auto-generating fast schedule (7 days)...`);
+      await createDefaultShows(movieId);
+      console.timeEnd("Auto-Schedule");
+
+      // Re-fetch the newly created shows
+      shows = await Show.find({ movie: movieId, showDateTime: { $gte: new Date() } }).lean();
+    }
 
     const dateTime = {};
     shows.forEach((show) => {
@@ -117,6 +138,38 @@ export const getShow = async (req, res) => {
     });
 
     res.json({ success: true, movie, dateTime });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// ✅ Get show by showId (for seat selection)
+export const getShowById = async (req, res) => {
+  try {
+    const { showId } = req.params;
+    if (!showId) return res.json({ success: false, message: "Show ID required" });
+
+    const show = await Show.findById(showId).populate("movie").populate("theater");
+    if (!show) return res.json({ success: false, message: "Show not found" });
+
+    // Format the show data with new price structure
+    const formattedShow = {
+      _id: show._id,
+      movie: show.movie,
+      theater: show.theater,
+      showDateTime: show.showDateTime,
+      priceStandard: show.priceStandard || 100,
+      pricePremium: show.pricePremium || 200,
+      priceVIP: show.priceVIP || 300,
+      occupiedSeats: show.occupiedSeats,
+      dateTime: [{
+        time: show.showDateTime.toISOString().split("T")[1].substring(0, 5),
+        showId: show._id,
+      }],
+    };
+
+    res.json({ success: true, show: formattedShow });
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
