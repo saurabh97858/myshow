@@ -62,9 +62,11 @@ export const AppProvider = ({ children }) => {
 
       setIsAdmin(false); // Safe fallback
 
-      // Only show error toast if user is trying to access admin routes
-      if (location.pathname.startsWith("/admin")) {
-        toast.error("Failed to check admin status");
+      setIsAdmin(false); // Safe fallback
+
+      // Always show error toast so we know if it's failing silently
+      if (user) {
+        toast.error(`Admin Check Error: ${error.response?.data?.message || error.message}`);
       }
     }
   };

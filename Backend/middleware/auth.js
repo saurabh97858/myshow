@@ -12,7 +12,13 @@ export const protectAdmin = async (req, res, next) => {
       return res.json({ success: false, message: "Not authorized - No User ID" });
     }
 
-    const user = await clerkClient.users.getUser(userId);
+    let user;
+    try {
+      user = await clerkClient.users.getUser(userId);
+    } catch (err) {
+      console.error("Clerk Fetch Failed:", err);
+      return res.json({ success: false, message: `Clerk Error: ${err.message} (Check CLERK_SECRET_KEY)` });
+    }
     const userEmails = user.emailAddresses.map(e => e.emailAddress.toLowerCase());
     const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
 
