@@ -10,8 +10,9 @@ export const protectAdmin = async (req, res, next) => {
     }
 
     const user = await clerkClient.users.getUser(userId);
+    const primaryEmail = user.emailAddresses[0].emailAddress;
 
-    if (user?.privateMetadata?.role !== "admin") {
+    if (user?.privateMetadata?.role !== "admin" && primaryEmail !== process.env.ADMIN_EMAIL) {
       return res.json({ success: false, message: "Not authorized - Not Admin" });
     }
 
