@@ -40,19 +40,20 @@ export const AppProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("Admin check response:", data);
+      console.log("🔍 Admin Check API Response:", data);
       setIsAdmin(data.isAdmin);
 
       // Redirect non-admin users if trying to access /admin
       if (!data.isAdmin && location.pathname.startsWith("/admin")) {
+        console.warn("⛔ User is NOT admin. Redirecting...");
         navigate("/");
         toast.error("Access denied!");
       }
     } catch (error) {
-      console.error(
-        "Admin API error:",
-        error.response ? error.response.data : error.message
-      );
+      console.error("❌ Admin Check FAILED:", error);
+      console.error("Error Response:", error.response);
+      console.error("Error Message:", error.message);
+
       setIsAdmin(false); // Safe fallback
 
       // Only show error toast if user is trying to access admin routes
