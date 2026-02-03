@@ -43,8 +43,14 @@ export const AppProvider = ({ children }) => {
       console.log("🔍 Admin Check API Response:", data);
       setIsAdmin(data.isAdmin);
 
+      if (!data.success && data.message) {
+        console.error("Admin Check Failed Reason:", data.message);
+        // Optionally toast this for the user to see why it failed
+        if (user) toast.error(`Admin Access Failed: ${data.message}`);
+      }
+
       // Redirect non-admin users if trying to access /admin
-      if (!data.isAdmin && location.pathname.startsWith("/admin")) {
+      if (data.success && !data.isAdmin && location.pathname.startsWith("/admin")) {
         console.warn("⛔ User is NOT admin. Redirecting...");
         navigate("/");
         toast.error("Access denied!");
