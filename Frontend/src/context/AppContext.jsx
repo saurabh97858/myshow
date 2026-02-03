@@ -4,8 +4,8 @@ import { useAuth, useUser } from "@clerk/clerk-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
-// Set base URL from environment
-axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
+// Set base URL from environment or fallback to production backend
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL || "https://myshow-wine.vercel.app";
 
 export const AppContext = createContext();
 
@@ -61,15 +61,6 @@ export const AppProvider = ({ children }) => {
       console.error("Error Message:", error.message);
 
       setIsAdmin(false); // Safe fallback
-
-      setIsAdmin(false); // Safe fallback
-
-      // Always show error toast so we know if it's failing silently
-      if (user) {
-        const targetUrl = `${axios.defaults.baseURL || ''}/api/user/favourites`; // Approximation or use error.config
-        const debugUrl = error.config ? `${error.config.baseURL || ''}${error.config.url}` : 'unknown url';
-        toast.error(`Net Err: ${error.message} hitting ${debugUrl}`);
-      }
     }
   };
 
