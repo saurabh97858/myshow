@@ -44,8 +44,8 @@ const HeroSection = () => {
                 backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%), url("${bgImage}")`
             }}
         >
-            {isMarvel && <img src={assets.marvelLogo} alt="Marvel" className='max-h-12 lg:h-14 mb-4 animate-fade-in' />}
-            {!isMarvel && <div className="mt-24"></div>}
+            {isMarvel && <img src={assets.marvelLogo} alt="Marvel" className='max-h-12 lg:h-14 mb-4 mt-32 animate-fade-in' />}
+            {!isMarvel && <div className="mt-36"></div>}
 
             <h1 className='text-5xl md:text-[80px] md:leading-20 font-bold max-w-2xl leading-tight tracking-tight drop-shadow-lg'>
                 {movie.title === "Guardians of the Galaxy" ? (

@@ -70,7 +70,7 @@ const App = () => {
         <Route
           path="/sign-in/*"
           element={
-            <div className="flex items-center justify-center min-h-screen bg-black/90 pt-20">
+            <div className="flex items-center justify-center min-h-screen bg-black/90 pt-20 transform scale-90">
               <SignIn routing="path" path="/sign-in" />
             </div>
           }
@@ -78,7 +78,7 @@ const App = () => {
         <Route
           path="/sign-up/*"
           element={
-            <div className="flex items-center justify-center min-h-screen bg-black/90 pt-20">
+            <div className="flex items-center justify-center min-h-screen bg-black/90 pt-20 transform scale-90">
               <SignUp routing="path" path="/sign-up" />
             </div>
           }
