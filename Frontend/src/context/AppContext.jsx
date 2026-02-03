@@ -66,7 +66,9 @@ export const AppProvider = ({ children }) => {
 
       // Always show error toast so we know if it's failing silently
       if (user) {
-        toast.error(`Admin Check Error: ${error.response?.data?.message || error.message}`);
+        const targetUrl = `${axios.defaults.baseURL || ''}/api/user/favourites`; // Approximation or use error.config
+        const debugUrl = error.config ? `${error.config.baseURL || ''}${error.config.url}` : 'unknown url';
+        toast.error(`Net Err: ${error.message} hitting ${debugUrl}`);
       }
     }
   };
