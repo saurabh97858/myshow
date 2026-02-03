@@ -39,15 +39,15 @@ const HeroSection = () => {
 
     return (
         <div
-            className='flex flex-col items-start justify-center gap-4 px-6 md:px-16 lg:px-36 bg-cover bg-center h-screen text-white'
+            className='flex flex-col items-start justify-center gap-4 px-8 md:px-20 lg:px-40 bg-cover bg-center h-screen text-white relative'
             style={{
-                backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 100%), url("${bgImage}")`
+                backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%), url("${bgImage}")`
             }}
         >
-            {isMarvel && <img src={assets.marvelLogo} alt="Marvel" className='max-h-11 lg:h-11 mt-20' />}
-            {!isMarvel && <div className="mt-20"></div>}
+            {isMarvel && <img src={assets.marvelLogo} alt="Marvel" className='max-h-12 lg:h-14 mb-4 animate-fade-in' />}
+            {!isMarvel && <div className="mt-24"></div>}
 
-            <h1 className='text-5xl md:text-[70px] md:leading-18 font-semibold max-w-110 leading-tight'>
+            <h1 className='text-5xl md:text-[80px] md:leading-20 font-bold max-w-2xl leading-tight tracking-tight drop-shadow-lg'>
                 {movie.title === "Guardians of the Galaxy" ? (
                     <>Guardians <br /> of the Galaxy</>
                 ) : (

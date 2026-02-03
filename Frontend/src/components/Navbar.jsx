@@ -13,6 +13,20 @@ const Navbar = () => {
   const navigate = useNavigate()
   const { favouriteMovies, isAdmin } = useAppContext()
 
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true)
+      } else {
+        setIsScrolled(false)
+      }
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   const navItems = [
     { to: '/', label: 'Home' },
     { to: '/movies', label: 'Movies' },
@@ -20,7 +34,7 @@ const Navbar = () => {
   ]
 
   return (
-    <nav className="fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-12 lg:px-24 py-4 bg-gradient-to-b from-black/80 to-transparent">
+    <nav className={`fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-12 lg:px-24 py-4 transition-all duration-300 ${isScrolled ? 'bg-black/70 backdrop-blur-md shadow-lg py-3' : 'bg-gradient-to-b from-black/80 to-transparent'}`}>
 
       {/* Logo */}
       <Link to="/" className="hover:opacity-80 transition-opacity">
@@ -28,7 +42,7 @@ const Navbar = () => {
       </Link>
 
       {/* Desktop Links - Premium Glass Pill */}
-      <div className="hidden md:flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-1.5 rounded-full backdrop-blur-lg shadow-lg ring-1 ring-white/5">
+      <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 bg-white/5 border border-white/10 px-2 py-1.5 rounded-full backdrop-blur-lg shadow-lg ring-1 ring-white/5">
         {navItems.map(({ to, label }) => (
           <Link
             key={label}
