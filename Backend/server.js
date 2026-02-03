@@ -34,7 +34,11 @@ app.use((req, res, next) => {
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || origin.startsWith("http://localhost")) {
+      if (
+        !origin ||
+        origin.startsWith("http://localhost") ||
+        origin.includes(".vercel.app")
+      ) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
