@@ -18,7 +18,22 @@ const bookingSchema = new mongoose.Schema({
             price: { type: Number },
             quantity: { type: Number }
         }
-    ]
+    ],
+    paymentDetails: {
+        method: { type: String }, // 'upi' or 'card'
+        upiId: { type: String },
+        utrNumber: { type: String },
+        cardLast4: { type: String }
+    },
+    status: {
+        type: String,
+        enum: ['confirmed', 'cancelled'],
+        default: 'confirmed'
+    },
+    isCancelled: { type: Boolean, default: false },
+    cancelledAt: { type: Date },
+    refundAmount: { type: Number, default: 0 },
+    cancellationReason: { type: String }
 }, { timestamps: true })
 
 const Booking = mongoose.model("Booking", bookingSchema);

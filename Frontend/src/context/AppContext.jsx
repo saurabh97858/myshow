@@ -5,7 +5,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 // Set base URL from environment or fallback to production backend
-axios.defaults.baseURL = import.meta.env.VITE_BASE_URL || "https://myshow-wine.vercel.app";
+// Set base URL from environment or fallback to production backend
+const backendUrl = import.meta.env.VITE_BASE_URL || "https://myshow-wine.vercel.app";
+axios.defaults.baseURL = backendUrl;
 
 export const AppContext = createContext();
 
@@ -43,10 +45,9 @@ export const AppProvider = ({ children }) => {
       console.log("🔍 Admin Check API Response:", data);
       setIsAdmin(data.isAdmin);
 
+      // Only log the failure reason, don't show toast to regular users
       if (!data.success && data.message) {
-        console.error("Admin Check Failed Reason:", data.message);
-        // Optionally toast this for the user to see why it failed
-        if (user) toast.error(`Admin Access Failed: ${data.message}`);
+        console.log("Admin Check Result:", data.message);
       }
 
       // Redirect non-admin users if trying to access /admin
@@ -137,6 +138,7 @@ export const AppProvider = ({ children }) => {
 
   const value = {
     axios,
+    backendUrl,
     fetchIsAdmin,
     user,
     getToken,

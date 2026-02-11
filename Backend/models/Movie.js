@@ -14,6 +14,7 @@ const movieSchema = new mongoose.Schema(
         rating: { type: Number, default: 0, min: 0, max: 10 },
         casts: { type: [String], default: [] }, // Array of cast names
         category: { type: String, enum: ['Indian', 'Hollywood'], default: 'Indian' }, // Movie category
+        isTrending: { type: Boolean, default: false }, // Trending status
     },
     { timestamps: true }
 );

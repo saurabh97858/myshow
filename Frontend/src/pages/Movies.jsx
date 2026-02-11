@@ -6,16 +6,19 @@ import { Search, Film, Calendar, Star } from 'lucide-react'
 const Movies = () => {
   const { movies } = useAppContext()
   const [selectedCategory, setSelectedCategory] = useState('All')
+  const [searchQuery, setSearchQuery] = useState('')
 
-  // Filter movies based on selected category
-  const filteredMovies = selectedCategory === 'All'
-    ? movies
-    : movies.filter(movie => movie.category === selectedCategory)
+  // Filter movies based on selected category AND search query
+  const filteredMovies = movies.filter(movie => {
+    const matchesCategory = selectedCategory === 'All' || movie.category === selectedCategory
+    const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesCategory && matchesSearch
+  })
 
   const categories = [
     { id: 'All', label: 'All Movies', icon: Film },
     { id: 'Indian', label: 'Indian Cinema', icon: Star },
-    { id: 'Hollywood', label: 'Hollywood', icon: Calendar }, // Using Calendar as placeholder icon if bespoke ones aren't available
+    { id: 'Hollywood', label: 'Hollywood', icon: Calendar },
   ]
 
   return (
@@ -33,23 +36,15 @@ const Movies = () => {
 
       <div className="relative z-10 max-w-[1600px] mx-auto px-6 md:px-12 lg:px-16">
 
-        {/* Hero Header */}
-        <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-16 border-b border-white/5 pb-8">
-          <div>
-            <h1 className="text-4xl md:text-6xl font-bold font-outfit tracking-tight mb-4">
-              Explore <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500">Movies</span>
-            </h1>
-            <p className="text-gray-400 text-lg max-w-2xl font-light">
-              Discover the latest blockbusters, critically acclaimed masterpieces, and hidden gems currently showing in cinemas.
-            </p>
-          </div>
-
-          {/* Search / Sort placeholder (visual only for now) */}
-          <div className="hidden md:flex items-center gap-4 bg-white/5 border border-white/5 px-4 py-2 rounded-full backdrop-blur-md">
+        {/* Search Bar */}
+        <div className="flex justify-end mb-8">
+          <div className="flex items-center gap-4 bg-white/5 border border-white/5 px-4 py-2 rounded-full backdrop-blur-md">
             <Search className="w-5 h-5 text-gray-400" />
             <input
               type="text"
               placeholder="Search movies..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent border-none outline-none text-white placeholder:text-gray-500 w-48 text-sm"
             />
           </div>
@@ -74,7 +69,7 @@ const Movies = () => {
 
         {/* Movies Grid */}
         {filteredMovies.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
             {filteredMovies.map((movie) => (
               <MovieCard movie={movie} key={movie._id} />
             ))}
@@ -84,7 +79,10 @@ const Movies = () => {
             <Film className="w-16 h-16 text-gray-600 mb-4" />
             <h2 className="text-2xl font-bold text-white mb-2">No Movies Found</h2>
             <p className="text-gray-500 max-w-md">
-              We couldn't find any movies matching "{selectedCategory}". Try switching categories or check back later.
+              {searchQuery
+                ? `We couldn't find any movies matching "${searchQuery}".`
+                : `We couldn't find any movies in the "${selectedCategory}" category.`
+              }
             </p>
           </div>
         )}

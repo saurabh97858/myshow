@@ -34,9 +34,13 @@ const TheatersSection = () => {
                     <h2 className="text-2xl md:text-3xl font-bold text-white tracking-wide">Theaters in {userLocation.city}</h2>
                     <p className="text-gray-400 mt-2 text-sm md:text-base">Experience the best cinema near you</p>
                 </div>
-                <Link to="/theaters" className="text-primary hover:text-white transition-colors text-sm font-semibold flex items-center gap-1">
-                    See All
-                </Link>
+
+                <div className="flex items-center gap-4">
+                    <span className="text-gray-500 text-xs animate-pulse hidden md:block">Scroll for more &rarr;</span>
+                    <Link to="/theaters" className="text-primary hover:text-white transition-colors text-sm font-semibold flex items-center gap-1">
+                        See All
+                    </Link>
+                </div>
             </div>
 
             {/* Horizontal Scroll Carousel */}
@@ -47,7 +51,7 @@ const TheatersSection = () => {
                         onClick={() => navigate('/movies')}
                         className="min-w-[280px] md:min-w-[320px] bg-[#121212] rounded-xl overflow-hidden cursor-pointer border border-white/5 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 snap-start flex-shrink-0"
                     >
-                        <div className="h-48 relative overflow-hidden">
+                        <div className="h-32 relative overflow-hidden">
                             <img
                                 src={theater.image}
                                 alt={theater.name}
@@ -83,7 +87,7 @@ const TheatersSection = () => {
                     </div>
                 ))}
             </div>
-        </div>
+        </div >
     );
 };
 

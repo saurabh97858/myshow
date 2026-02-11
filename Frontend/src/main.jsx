@@ -15,15 +15,25 @@ if (!PUBLISHABLE_KEY) {
 function ClerkWithRouter({ children }) {
   const navigate = useNavigate();
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} navigate={(to) => navigate(to)}>
+    <ClerkProvider
+      publishableKey={PUBLISHABLE_KEY}
+      navigate={(to) => navigate(to)}
+      afterSignInUrl="/"
+      afterSignUpUrl="/"
+      signInFallbackRedirectUrl="/"
+      signUpFallbackRedirectUrl="/"
+    >
       {children}
     </ClerkProvider>
   );
 }
 
+import ScrollToTop from "./components/ScrollToTop";
+
 function Main() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <ClerkWithRouter>
         <AppProvider>
           <App />

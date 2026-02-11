@@ -427,3 +427,19 @@ export const addDummyMovies = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 };
+
+
+// Seed trending movies (Temporary)
+export const seedTrendingMovies = async (req, res) => {
+    try {
+        const movies = await Movie.find().limit(6);
+        if (movies.length === 0) return res.json({ success: false, message: "No movies found" });
+
+        const ids = movies.map(m => m._id);
+        await Movie.updateMany({ _id: { $in: ids } }, { $set: { isTrending: true } });
+
+        res.json({ success: true, message: `Updated ${movies.length} movies to trending` });
+    } catch (error) {
+        res.json({ success: false, message: error.message });
+    }
+};

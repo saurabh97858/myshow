@@ -3,7 +3,7 @@ import Loading from '../components/Loading';
 import { useAppContext } from '../context/AppContext';
 import { Share2, Calendar, Clock, MapPin, Ticket, Eye, X, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
-import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const MyBooking = () => {
   const { axios, getToken, user, isLoaded } = useAppContext();
@@ -73,18 +73,221 @@ const MyBooking = () => {
   };
 
   const handleDownloadTicket = async () => {
-    if (!ticketRef.current) return;
+    if (!selectedTicket) return;
+
     try {
-      const canvas = await html2canvas(ticketRef.current, {
-        backgroundColor: null, // Keep transparency if any
-        scale: 2, // Higher resolution
-        useCORS: true, // Allow loading cross-origin images (like poster)
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
       });
-      const link = document.createElement('a');
-      link.download = `Ticket_${selectedTicket?.show?.movie?.title || 'Movie'}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      toast.success("Ticket downloaded successfully!");
+
+      const movie = selectedTicket.show?.movie;
+      const theater = selectedTicket.show?.theater;
+      const dateObj = selectedTicket.show?.showDateTime
+        ? new Date(selectedTicket.show.showDateTime)
+        : (selectedTicket.show?.date ? new Date(selectedTicket.show.date) : null);
+
+      // Background - Light cream/beige like real tickets
+      pdf.setFillColor(250, 248, 245);
+      pdf.rect(0, 0, 210, 297, 'F');
+
+      // Top Header - Dark Blue/Black
+      pdf.setFillColor(15, 23, 42); // Dark slate
+      pdf.rect(0, 0, 210, 55, 'F');
+
+      // Title
+      pdf.setTextColor(248, 69, 101); // Primary red
+      pdf.setFontSize(36);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('MOVIE TICKET', 105, 25, { align: 'center' });
+
+      // Confirmed badge
+      pdf.setFillColor(34, 197, 94);
+      pdf.roundedRect(75, 35, 60, 12, 3, 3, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('✓ CONFIRMED', 105, 42, { align: 'center' });
+
+      // Main content area with border
+      pdf.setDrawColor(15, 23, 42);
+      pdf.setLineWidth(1);
+      pdf.rect(15, 65, 180, 200);
+
+      let y = 80;
+
+      // Movie Title - BOLD & LARGE
+      pdf.setTextColor(15, 23, 42); // Dark blue/black
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      const movieTitle = movie?.title || 'Unknown Movie';
+      pdf.text(movieTitle, 105, y, { align: 'center' });
+
+      y += 10;
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(30, 58, 138); // Dark blue
+      pdf.text(`${movie?.language || 'N/A'} | ${movie?.format || '2D'}`, 105, y, { align: 'center' });
+
+      // Decorative line
+      y += 8;
+      pdf.setDrawColor(248, 69, 101);
+      pdf.setLineWidth(1.5);
+      pdf.line(30, y, 180, y);
+
+      // Theater Section
+      y += 12;
+      pdf.setFontSize(11);
+      pdf.setTextColor(100, 116, 139); // Medium gray
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('THEATER', 25, y);
+
+      y += 7;
+      pdf.setFontSize(14);
+      pdf.setTextColor(15, 23, 42); // Dark
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(theater?.name || 'Unknown Theater', 25, y);
+
+      y += 6;
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(51, 65, 85); // Dark gray
+      pdf.text(`${theater?.location || 'N/A'}, ${theater?.city || 'N/A'}`, 25, y);
+
+      // Show Details
+      y += 14;
+      pdf.setFontSize(11);
+      pdf.setTextColor(100, 116, 139);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('SHOW DETAILS', 25, y);
+
+      y += 7;
+      pdf.setFontSize(13);
+      pdf.setTextColor(15, 23, 42);
+      pdf.setFont('helvetica', 'bold');
+      const showDate = dateObj
+        ? dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+        : 'Date N/A';
+      const showTime = dateObj
+        ? dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+        : 'Time N/A';
+      pdf.text(`📅 ${showDate}`, 25, y);
+
+      y += 7;
+      pdf.text(`🕐 ${showTime}`, 25, y);
+
+      // Seats - PROMINENT
+      y += 14;
+      pdf.setFontSize(11);
+      pdf.setTextColor(100, 116, 139);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('SEATS', 25, y);
+
+      y += 7;
+      pdf.setFontSize(16);
+      pdf.setTextColor(15, 23, 42);
+      pdf.setFont('helvetica', 'bold');
+      const seats = (selectedTicket.bookedSeats || selectedTicket.seats || []).join(', ');
+      pdf.text(seats || 'N/A', 25, y);
+
+      // Add-ons
+      if (selectedTicket.foodItems && selectedTicket.foodItems.length > 0) {
+        y += 14;
+        pdf.setFontSize(11);
+        pdf.setTextColor(100, 116, 139);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('ADD-ONS', 25, y);
+
+        y += 7;
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(30, 58, 138);
+        selectedTicket.foodItems.filter(f => f.quantity > 0).forEach(item => {
+          pdf.text(`• ${item.name} x${item.quantity}`, 25, y);
+          y += 6;
+        });
+      }
+
+      // Booking Details
+      y += 12;
+      pdf.setFontSize(11);
+      pdf.setTextColor(100, 116, 139);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('BOOKING DETAILS', 25, y);
+
+      y += 7;
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(15, 23, 42);
+      pdf.text(`Name: ${selectedTicket.contactDetails?.name || user?.name || 'User'}`, 25, y);
+
+      y += 6;
+      pdf.text(`Mobile: ${selectedTicket.contactDetails?.mobile || 'N/A'}`, 25, y);
+
+      // Payment Details
+      if (selectedTicket.paymentDetails) {
+        y += 12;
+        pdf.setFontSize(11);
+        pdf.setTextColor(100, 116, 139);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('PAYMENT DETAILS', 25, y);
+
+        y += 7;
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(15, 23, 42);
+        pdf.text(`Method: ${selectedTicket.paymentDetails.method?.toUpperCase() || 'N/A'}`, 25, y);
+
+        if (selectedTicket.paymentDetails.upiId) {
+          y += 6;
+          pdf.setTextColor(30, 58, 138);
+          pdf.text(`UPI ID: ${selectedTicket.paymentDetails.upiId}`, 25, y);
+        }
+
+        if (selectedTicket.paymentDetails.utrNumber) {
+          y += 6;
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(15, 23, 42);
+          pdf.text(`UTR: ${selectedTicket.paymentDetails.utrNumber}`, 25, y);
+        }
+      }
+
+      // Total Amount - BOLD BOX
+      pdf.setFillColor(248, 69, 101);
+      pdf.rect(15, 270, 180, 18, 'F');
+
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`TOTAL: ₹${selectedTicket.amount}`, 105, 281, { align: 'center' });
+
+      // QR Code Section - Right side
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${selectedTicket._id}`;
+      try {
+        pdf.addImage(qrUrl, 'PNG', 140, 180, 50, 50);
+
+        pdf.setFontSize(8);
+        pdf.setTextColor(100, 116, 139);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('SCAN AT', 165, 235, { align: 'center' });
+        pdf.text('THEATER', 165, 240, { align: 'center' });
+      } catch (err) {
+        console.error('QR code error:', err);
+      }
+
+      // Footer
+      pdf.setFontSize(8);
+      pdf.setTextColor(100, 116, 139);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Thank you for booking with us!', 105, 292, { align: 'center' });
+
+      pdf.setFontSize(7);
+      pdf.text(`Booking ID: ${selectedTicket._id}`, 105, 295, { align: 'center' });
+
+      // Save PDF
+      pdf.save(`Ticket_${movie?.title || 'Movie'}.pdf`);
+      toast.success("Ticket downloaded as PDF successfully!");
     } catch (error) {
       console.error("Download failed:", error);
       toast.error(`Failed to download: ${error.message}`);
@@ -95,17 +298,17 @@ const MyBooking = () => {
   if (isLoading) return <div className="min-h-screen bg-[#09090B] flex items-center justify-center"><Loading /></div>;
 
   return (
-    <div className="min-h-screen bg-[#09090B] text-white pt-24 pb-20 px-6 md:px-12 lg:px-20 relative overflow-hidden">
+    <div className="min-h-screen bg-[#09090B] text-white pt-16 pb-8 px-4 md:px-6 relative overflow-hidden">
       {/* Ambient Background */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-900/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-      <div className="relative z-10 max-w-5xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold font-outfit mb-2">My Bookings</h1>
-        <p className="text-gray-400 mb-10">Manage your tickets and upcoming shows</p>
+      <div className="relative z-10 max-w-2xl mx-auto">
+        <h1 className="text-xl md:text-2xl font-bold font-outfit mb-0.5">My Bookings</h1>
+        <p className="text-xs text-gray-500 mb-4">Manage your bookings</p>
 
         {bookings.length > 0 ? (
-          <div className="space-y-6">
+          <div className="space-y-3">
             {bookings.map((booking, index) => {
               const show = booking.show || {};
               const movie = show.movie || {};
@@ -128,9 +331,9 @@ const MyBooking = () => {
               const posterImage = movie.posterUrl || movie.backdropUrl || "/placeholder.png";
 
               return (
-                <div key={index} className="group relative bg-[#121212] border border-white/5 rounded-3xl overflow-hidden hover:border-white/10 transition-all duration-300 shadow-xl flex flex-col md:flex-row">
+                <div key={index} className="group relative bg-[#121212] border border-white/5 rounded-xl overflow-hidden hover:border-white/10 transition-all duration-300 shadow-lg flex flex-col md:flex-row">
                   {/* Left: Poster */}
-                  <div className="md:w-48 h-48 md:h-auto shrink-0 relative overflow-hidden">
+                  <div className="md:w-28 h-28 md:h-auto shrink-0 relative overflow-hidden">
                     <img
                       src={posterImage}
                       alt={movie.title || "Unknown Movie"}
@@ -147,9 +350,9 @@ const MyBooking = () => {
                   </div>
 
                   {/* Middle: Details */}
-                  <div className="p-6 md:p-8 flex-1 flex flex-col justify-center gap-4">
+                  <div className="p-3 md:p-4 flex-1 flex flex-col justify-center gap-2">
                     <div>
-                      <h2 className="text-2xl font-bold text-white mb-2 leading-tight">{movie.title || "Unknown Movie"}</h2>
+                      <h2 className="text-base md:text-lg font-bold text-white mb-0.5 leading-tight">{movie.title || "Unknown Movie"}</h2>
                       <div className="space-y-1">
                         <p className="text-gray-400 text-sm font-medium">{theaterName}, {theaterCity}</p>
                         <p className="text-sm text-gray-500 flex items-center gap-2">
@@ -160,8 +363,8 @@ const MyBooking = () => {
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-300">
-                      <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                    <div className="flex flex-wrap gap-2 text-[10px] text-gray-400">
+                      <div className="flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded border border-white/5">
                         <Calendar className="w-4 h-4 text-primary" />
                         {showDate}
                       </div>
@@ -205,30 +408,30 @@ const MyBooking = () => {
                   </div>
 
                   {/* Right: Action & Price */}
-                  <div className="bg-white/5 p-6 md:w-64 flex flex-col justify-between items-center md:items-end border-t md:border-t-0 md:border-l border-white/5 relative overflow-hidden">
+                  <div className="bg-white/5 p-3 md:p-4 md:w-48 flex flex-col justify-between items-center md:items-end border-t md:border-t-0 md:border-l border-white/5 relative overflow-hidden">
                     {/* Payment Status Badge */}
-                    <div className="bg-green-500/10 text-green-500 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-green-500/20 mb-4">
+                    <div className="bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border border-green-500/20 mb-2">
                       Confirmed
                     </div>
 
                     <div className="text-center md:text-right">
-                      <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Total Amount</p>
-                      <p className="text-2xl font-bold text-white">₹{booking.amount}</p>
+                      <p className="text-[9px] text-gray-600 uppercase tracking-widest mb-0">Total Amount</p>
+                      <p className="text-lg font-bold text-white">₹{booking.amount}</p>
                     </div>
 
                     <div className="flex gap-3 w-full mt-6">
                       <button
                         onClick={() => setSelectedTicket(booking)}
-                        className="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors shadow-lg active:scale-95"
+                        className="flex-1 bg-white text-black py-1.5 rounded-md font-bold text-[10px] flex items-center justify-center gap-1 hover:bg-gray-200 transition-colors shadow-sm active:scale-95"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-3 h-3" />
                         View
                       </button>
                       <button
                         onClick={() => handleShare(booking)}
-                        className="flex-1 bg-white/10 text-white border border-white/10 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-white/20 transition-colors active:scale-95"
+                        className="flex-1 bg-white/10 text-white border border-white/10 py-1.5 rounded-md font-bold text-[10px] flex items-center justify-center gap-1 hover:bg-white/20 transition-colors active:scale-95"
                       >
-                        <Share2 className="w-4 h-4" />
+                        <Share2 className="w-3 h-3" />
                         Share
                       </button>
                     </div>
@@ -249,13 +452,13 @@ const MyBooking = () => {
       {/* Ticket View Modal */}
       {selectedTicket && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#09090b]/90 backdrop-blur-md p-4 animate-fade-in" onClick={() => setSelectedTicket(null)}>
-          <div className="w-full max-w-5xl relative flex flex-col items-center" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-2xl relative flex flex-col items-center" onClick={e => e.stopPropagation()}>
 
             {/* Ticket Container */}
             <div ref={ticketRef} className="bg-[#121212] text-white rounded-3xl overflow-hidden shadow-2xl relative w-full flex flex-col md:flex-row border border-[#ffffff1a]">
 
               {/* LEFT: Poster Section */}
-              <div className="relative md:w-1/3 h-64 md:h-auto min-h-[300px] bg-[#111827]">
+              <div className="relative md:w-32 h-40 md:h-auto min-h-[150px] bg-[#111827]">
                 {(() => {
                   const posterUrl = selectedTicket.show?.movie?.posterUrl;
                   const proxyUrl = posterUrl
@@ -281,11 +484,11 @@ const MyBooking = () => {
               </div>
 
               {/* MIDDLE: Details Section */}
-              <div className="flex-1 p-8 flex flex-col justify-center relative border-b md:border-b-0 md:border-r border-[#ffffff1a] bg-[#121212]">
-                <h2 className="text-3xl font-black leading-tight mb-2 font-manrope text-white">{selectedTicket.show?.movie?.title}</h2>
-                <div className="flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wider mb-6">
-                  <span className="bg-[#ffffff1a] px-3 py-1 rounded border border-[#ffffff1a]">{selectedTicket.show?.movie?.language}</span>
-                  <span className="bg-[#ffffff1a] px-3 py-1 rounded border border-[#ffffff1a]">{selectedTicket.show?.movie?.format || "2D"}</span>
+              <div className="flex-1 p-4 flex flex-col justify-center relative border-b md:border-b-0 md:border-r border-[#ffffff1a] bg-[#121212]">
+                <h2 className="text-xl font-black leading-tight mb-1 font-manrope text-white">{selectedTicket.show?.movie?.title}</h2>
+                <div className="flex flex-wrap gap-1.5 text-[9px] font-bold uppercase tracking-wider mb-3">
+                  <span className="bg-[#ffffff1a] px-2 py-0.5 rounded border border-[#ffffff1a]">{selectedTicket.show?.movie?.language}</span>
+                  <span className="bg-[#ffffff1a] px-2 py-0.5 rounded border border-[#ffffff1a]">{selectedTicket.show?.movie?.format || "2D"}</span>
                 </div>
 
                 <div className="space-y-4">
@@ -297,15 +500,15 @@ const MyBooking = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <div className="bg-[#ffffff0d] px-4 py-2 rounded-xl border border-[#ffffff0d]">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-[#ffffff0d] px-2.5 py-1.5 rounded-lg border border-[#ffffff0d]">
                       <p className="text-[10px] text-[#6b7280] uppercase font-bold mb-1">Date</p>
                       <p className="text-sm font-bold text-white flex items-center gap-2">
                         <Calendar size={14} className="text-[#F84565]" />
                         {new Date(selectedTicket.show?.showDateTime || selectedTicket.show?.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
-                    <div className="bg-[#ffffff0d] px-4 py-2 rounded-xl border border-[#ffffff0d]">
+                    <div className="bg-[#ffffff0d] px-2.5 py-1.5 rounded-lg border border-[#ffffff0d]">
                       <p className="text-[10px] text-[#6b7280] uppercase font-bold mb-1">Time</p>
                       <p className="text-sm font-bold text-white flex items-center gap-2">
                         <Clock size={14} className="text-[#fb923c]" />
@@ -316,9 +519,9 @@ const MyBooking = () => {
 
                   <div>
                     <p className="text-[10px] text-[#6b7280] uppercase font-bold mb-2">Seats</p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1">
                       {(selectedTicket.bookedSeats || selectedTicket.seats || []).map(seat => (
-                        <span key={seat} className="bg-[#ffffff1a] text-white border border-[#ffffff1a] px-3 py-1.5 rounded-lg text-xs font-bold font-mono">
+                        <span key={seat} className="bg-[#ffffff1a] text-white border border-[#ffffff1a] px-2 py-0.5 rounded text-[10px] font-bold font-mono">
                           {seat}
                         </span>
                       ))}
@@ -355,21 +558,21 @@ const MyBooking = () => {
               </div>
 
               {/* RIGHT: Actions Section */}
-              <div className="bg-[#161616] p-8 md:w-72 flex flex-col justify-between items-center text-center relative">
+              <div className="bg-[#161616] p-4 md:w-52 flex flex-col justify-between items-center text-center relative">
                 <div>
-                  <span className="bg-[#22c55e1a] text-[#22c55e] border border-[#22c55e33] px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">Confirmed</span>
+                  <span className="bg-[#22c55e1a] text-[#22c55e] border border-[#22c55e33] px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider">Confirmed</span>
                 </div>
 
-                <div className="my-8">
-                  <p className="text-[10px] text-[#6b7280] font-bold uppercase tracking-widest mb-1">Total Amount</p>
-                  <p className="text-4xl font-black text-white tracking-tighter">₹{selectedTicket.amount}</p>
+                <div className="my-4">
+                  <p className="text-[9px] text-[#6b7280] font-bold uppercase tracking-widest mb-0.5">Total Amount</p>
+                  <p className="text-2xl font-black text-white tracking-tighter">₹{selectedTicket.amount}</p>
                 </div>
 
                 <div className="w-full space-y-3">
-                  <div className="p-2 bg-white rounded-xl mb-6 mx-auto w-fit">
+                  <div className="p-1.5 bg-white rounded-lg mb-3 mx-auto w-fit">
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${selectedTicket._id}`}
-                      className="w-24 h-24 object-contain"
+                      className="w-16 h-16 object-contain"
                       alt="QR"
                       crossOrigin="anonymous"
                     />
@@ -377,15 +580,15 @@ const MyBooking = () => {
 
                   <button
                     onClick={handleDownloadTicket}
-                    className="w-full bg-white text-black py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors shadow-lg active:scale-95"
+                    className="w-full bg-white text-black py-2 rounded-lg font-bold text-[10px] flex items-center justify-center gap-1.5 hover:bg-gray-200 transition-colors shadow-sm active:scale-95"
                   >
-                    <Download className="w-4 h-4" /> Download Ticket
+                    <Download className="w-3 h-3" /> Download
                   </button>
                   <button
                     onClick={handleShare}
-                    className="w-full bg-[#ffffff0d] border border-[#ffffff1a] text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#ffffff1a] transition-colors active:scale-95"
+                    className="w-full bg-[#ffffff0d] border border-[#ffffff1a] text-white py-2 rounded-lg font-bold text-[10px] flex items-center justify-center gap-1.5 hover:bg-[#ffffff1a] transition-colors active:scale-95"
                   >
-                    <Share2 className="w-4 h-4" /> Share
+                    <Share2 className="w-3 h-3" /> Share
                   </button>
                 </div>
               </div>

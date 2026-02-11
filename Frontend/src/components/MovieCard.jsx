@@ -10,7 +10,7 @@ const formatRuntime = (minutes) => {
   return `${h > 0 ? h + "h " : ""}${m}m`;
 };
 
-const MovieCard = ({ movie }) => {
+const MovieCard = ({ movie, className, preferBackdrop }) => {
   const navigate = useNavigate();
   const { isAdmin, deleteMovie } = useAppContext();
 
@@ -22,7 +22,9 @@ const MovieCard = ({ movie }) => {
     return null;
   }
 
-  const posterImage = movie.posterUrl || movie.backdropUrl || "/placeholder.png";
+  const posterImage = (preferBackdrop && movie.backdropUrl)
+    ? movie.backdropUrl
+    : (movie.posterUrl || movie.backdropUrl || "/placeholder.png");
 
   const releaseYear = movie.releaseDate
     ? new Date(movie.releaseDate).getFullYear()
@@ -50,14 +52,14 @@ const MovieCard = ({ movie }) => {
   return (
     <div
       onClick={handleCardClick}
-      className="group relative w-full aspect-[2/3] rounded-3xl overflow-hidden cursor-pointer shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/5 transition-transform duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
+      className={`group relative w-full ${className || "aspect-[2/3]"} rounded-3xl overflow-hidden cursor-pointer shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/5 transition-transform duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]`}
     >
       {/* Background Image */}
       <img
         src={posterImage}
         onError={(e) => { e.target.src = "/placeholder.png" }}
         alt={movie.title || "Movie Poster"}
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        className="absolute inset-0 w-full h-full object-fill transition-transform duration-700 group-hover:scale-110"
       />
 
       {/* Gradient Overlay - Always present but stronger at bottom */}

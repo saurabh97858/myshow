@@ -6,6 +6,7 @@ import { UserButton, useUser } from '@clerk/clerk-react'
 
 import { useAppContext } from '../context/AppContext'
 import LocationSelector from './LocationSelector'
+import NotificationBell from './NotificationBell'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -30,11 +31,12 @@ const Navbar = () => {
   const navItems = [
     { to: '/', label: 'Home' },
     { to: '/movies', label: 'Movies' },
+    { to: '/trending', label: 'Trending' },
     { to: '/favourite', label: 'Favourites' },
   ]
 
   return (
-    <nav className={`fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-12 lg:px-24 py-4 transition-all duration-300 ${isScrolled ? 'bg-black/70 backdrop-blur-md shadow-lg py-3' : 'bg-gradient-to-b from-black/80 to-transparent'}`}>
+    <nav className={`fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-12 lg:px-12 py-4 transition-all duration-300 ${isScrolled ? 'bg-black/70 backdrop-blur-md shadow-lg py-3' : 'bg-gradient-to-b from-black/80 to-transparent'}`}>
 
       {/* Logo */}
       <Link to="/" className="hover:opacity-80 transition-opacity">
@@ -70,7 +72,9 @@ const Navbar = () => {
         <div className='hidden lg:block'>
           <LocationSelector />
         </div>
-        <SearchIcon className="hidden md:block w-5 h-5 cursor-pointer text-gray-300 hover:text-white transition" />
+
+        {/* Notification Bell - Only for logged in users */}
+        {user && <NotificationBell />}
 
         {!user ? (
           <Link to="/sign-in">
@@ -81,6 +85,7 @@ const Navbar = () => {
         ) : (
           <UserButton
             afterSignOutUrl="/"
+            userProfileMode="navigation"
             appearance={{
               elements: {
                 avatarBox: "w-9 h-9 ring-2 ring-white/20 hover:ring-primary transition-all"

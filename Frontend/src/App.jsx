@@ -11,14 +11,20 @@ import TheatersList from "./pages/TheatersList";
 import TheaterMovies from "./pages/TheaterMovies";
 import MyBookings from "./pages/MyBooking";
 import Favourite from "./pages/Favourite";
+import TrendingMovies from "./pages/TrendingMovies";
 import { Toaster } from "react-hot-toast";
 import { SignIn, SignUp } from "@clerk/clerk-react";
 
 import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import AddMovie from "./pages/admin/AddMovie";
+import AddTheater from "./pages/admin/AddTheater";
+import ManageTrending from "./pages/admin/ManageTrending";
 import ListShows from "./pages/admin/ListShows";
 import ListBookings from "./pages/admin/ListBookings";
+import AdminSupport from "./pages/admin/AdminSupport";
+import HelpCenter from "./pages/HelpCenter";
+import Experiences from "./pages/Experiences";
 import { useAppContext } from "./context/AppContext";
 
 const App = () => {
@@ -26,13 +32,16 @@ const App = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
   const isSeatLayoutRoute = /^\/movies\/[^/]+\/[^/]+$/.test(location.pathname);
+  const isMovieDetailsRoute = /^\/movies\/[^/]+$/.test(location.pathname);
+  const isHelpCenterRoute = location.pathname === "/help-center";
+  const isExperiencesRoute = location.pathname === "/experiences";
 
-  if (!isLoaded || (user && isAdmin === null)) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (!isLoaded) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
   return (
     <>
       <Toaster />
-      {!isAdminRoute && !isSeatLayoutRoute && <Navbar />}
+      {!isAdminRoute && !isSeatLayoutRoute && !isMovieDetailsRoute && !isHelpCenterRoute && !isExperiencesRoute && <Navbar />}
 
       <Routes>
         {/* Main App Routes */}
@@ -45,6 +54,9 @@ const App = () => {
         <Route path="/movies/:movieId/:showId" element={<SeatLayout />} />
         <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/favourite" element={<Favourite />} />
+        <Route path="/trending" element={<TrendingMovies />} />
+        <Route path="/help-center" element={<HelpCenter />} />
+        <Route path="/experiences" element={<Experiences />} />
 
         {/* Admin Routes */}
         <Route
@@ -61,9 +73,12 @@ const App = () => {
         >
           <Route index element={<Dashboard />} />
           <Route path="add-movie" element={<AddMovie />} />
+          <Route path="add-theater" element={<AddTheater />} />
+          <Route path="manage-trending" element={<ManageTrending />} />
           {/* <Route path="add-shows" element={<AddShows />} /> */}
           <Route path="list-shows" element={<ListShows />} />
           <Route path="list-bookings" element={<ListBookings />} />
+          <Route path="support" element={<AdminSupport />} />
         </Route>
 
         {/* Clerk Auth Routes */}
@@ -85,7 +100,7 @@ const App = () => {
         />
       </Routes >
 
-      {!isAdminRoute && <Footer />
+      {!isAdminRoute && !isHelpCenterRoute && !isExperiencesRoute && <Footer />
       }
     </>
   );

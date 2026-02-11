@@ -5,6 +5,8 @@ import Loading from "../components/Loading";
 import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
 import { assets } from "../assets/assets";
+import ReviewForm from "../components/ReviewForm";
+import ReviewList from "../components/ReviewList";
 
 const MovieDetails = () => {
   const navigate = useNavigate();
@@ -171,12 +173,29 @@ const MovieDetails = () => {
     setBookingStep(3);
   };
 
-  const applyCoupon = () => {
-    if (coupon.toUpperCase() === "MYS50") {
-      setDiscount(50);
-      toast.success("Coupon Applied: ₹50 Off");
-    } else {
-      toast.error("Invalid Code");
+  const applyCoupon = async () => {
+    if (!coupon.trim()) {
+      return toast.error("Enter a coupon code");
+    }
+
+    try {
+      const token = await getToken();
+      const { data } = await axios.post(
+        "/api/coupons/validate",
+        {
+          code: coupon,
+          amount: seatPrice + snacksPrice
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (data.success) {
+        setDiscount(data.discount);
+        toast.success(`Coupon Applied: ₹${data.discount} Off`);
+      }
+    } catch (error) {
+      console.error('Coupon error:', error);
+      toast.error(error.response?.data?.message || "Invalid Code");
       setDiscount(0);
     }
   };
@@ -241,9 +260,28 @@ const MovieDetails = () => {
 
   return (
     <div className="min-h-screen bg-[#050505]">
+      {/* Header with Back Button */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-white hover:text-primary transition-colors"
+          >
+            <ChevronLeft className="w-6 h-6" />
+            <span className="font-medium">Back</span>
+          </button>
+          <div className="flex-1 flex justify-center">
+            <h1 className="text-2xl font-bold text-primary cursor-pointer" onClick={() => navigate('/')}>
+              Quick<span className="text-white">Show</span>
+            </h1>
+          </div>
+          <div className="w-20"></div> {/* Spacer for centering */}
+        </div>
+      </div>
+
       {/* Hero Section with Backdrop */}
       <div
-        className="relative h-[500px] bg-cover"
+        className="relative h-[500px] bg-cover mt-16"
         style={{
           backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(5,5,5,1)), url(${movie.backdropUrl || movie.posterUrl || '/default-poster.jpg'})`,
           backgroundPosition: 'center center',
@@ -376,6 +414,27 @@ const MovieDetails = () => {
               </div>
             </div>
           )}
+
+          {/* Reviews & Ratings Section */}
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <StarIcon className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+              Reviews & Ratings
+            </h2>
+
+            {/* Review Form */}
+            {user && (
+              <div className="mb-8">
+                <ReviewForm
+                  movieId={movieId}
+                  onSuccess={() => window.location.reload()}
+                />
+              </div>
+            )}
+
+            {/* Reviews List */}
+            <ReviewList movieId={movieId} />
+          </div>
         </div>
       </div>
 

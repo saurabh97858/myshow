@@ -1,6 +1,6 @@
 import React from 'react';
 import { assets } from '../../assets/assets';
-import { LayoutDashboardIcon, ListCollapseIcon, ListIcon, PlusSquare, FilmIcon, Home } from 'lucide-react';
+import { LayoutDashboardIcon, ListCollapseIcon, ListIcon, PlusSquare, FilmIcon, Home, MapPin, Flame, HelpCircle } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 
 const AdminSidebar = () => {
@@ -15,9 +15,11 @@ const AdminSidebar = () => {
   const adminNavLinks = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboardIcon },
     { name: 'Add Movies', path: '/admin/add-movie', icon: FilmIcon },
-    // { name: 'Add Shows', path: '/admin/add-shows', icon: PlusSquare },
+    { name: 'Add Theater', path: '/admin/add-theater', icon: MapPin },
+    { name: 'Manage Trending', path: '/admin/manage-trending', icon: Flame },
     { name: 'List Shows', path: '/admin/list-shows', icon: ListIcon },
     { name: 'List Bookings', path: '/admin/list-bookings', icon: ListCollapseIcon },
+    { name: 'Help & Support', path: '/admin/support', icon: HelpCircle },
   ];
 
   return (

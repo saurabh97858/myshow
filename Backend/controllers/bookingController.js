@@ -2,6 +2,7 @@ import Show from "../models/showModel.js";
 import Booking from "../models/bookingModel.js";
 import User from "../models/userModel.js";
 import { clerkClient } from "@clerk/express";
+import { sendBookingConfirmation } from "../utils/notificationHelpers.js";
 
 // Function to check availability of selected seats
 const checkSeatsAvailability = async (showId, selectedSeats) => {
@@ -51,7 +52,9 @@ export const createBooking = async (req, res) => {
             amount: amount || (showData.priceStandard * selectedSeats.length),
             bookedSeats: selectedSeats,
             contactDetails: contactDetails,
-            foodItems: foodItems || []
+            foodItems: foodItems || [],
+            isPaid: true, // Mark as paid immediately since we simulate success
+            paymentId: 'DEMO-' + Date.now()
         });
 
         // mark seats as occupied
@@ -63,6 +66,13 @@ export const createBooking = async (req, res) => {
 
         showData.markModified('occupiedSeats');
         await showData.save();
+
+        // Send booking confirmation notification
+        const bookingWithShow = await Booking.findById(booking._id).populate({
+            path: 'show',
+            populate: { path: 'movie' }
+        });
+        await sendBookingConfirmation(userId, bookingWithShow);
 
         res.json({ success: true, message: "Booked successfully" });
 
@@ -90,3 +100,89 @@ export const getOccupiedSeats = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 }
+
+// Cancel booking with refund calculation
+export const cancelBooking = async (req, res) => {
+    try {
+        const { userId } = req.auth;
+        const { bookingId } = req.params;
+        const { reason } = req.body;
+
+        // Find booking
+        const booking = await Booking.findById(bookingId).populate({
+            path: 'show',
+            populate: { path: 'movie' }
+        });
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found'
+            });
+        }
+
+        // Check ownership
+        if (booking.user !== userId) {
+            return res.status(403).json({
+                success: false,
+                message: 'Unauthorized'
+            });
+        }
+
+        // Check if already cancelled
+        if (booking.isCancelled) {
+            return res.status(400).json({
+                success: false,
+                message: 'Booking already cancelled'
+            });
+        }
+
+        // Calculate refund based on show time
+        const showTime = new Date(`${booking.show.date}T${booking.show.time}`);
+        const now = new Date();
+        const hoursUntilShow = (showTime - now) / (1000 * 60 * 60);
+
+        let refundPercentage = 0;
+        if (hoursUntilShow > 48) {
+            refundPercentage = 100; // Full refund
+        } else if (hoursUntilShow > 24) {
+            refundPercentage = 80; // 80% refund
+        } else if (hoursUntilShow > 2) {
+            refundPercentage = 50; // 50% refund
+        } else {
+            refundPercentage = 0; // No refund
+        }
+
+        const refundAmount = Math.round((booking.amount * refundPercentage) / 100);
+
+        // Update booking
+        booking.isCancelled = true;
+        booking.status = 'cancelled';
+        booking.cancelledAt = new Date();
+        booking.refundAmount = refundAmount;
+        booking.cancellationReason = reason || 'User requested';
+        await booking.save();
+
+        // Free up seats
+        const showData = await Show.findById(booking.show._id);
+        booking.bookedSeats.forEach(seat => {
+            delete showData.occupiedSeats[seat];
+        });
+        showData.markModified('occupiedSeats');
+        await showData.save();
+
+        res.json({
+            success: true,
+            message: `Booking cancelled. Refund: ₹${refundAmount} (${refundPercentage}%)`,
+            refundAmount,
+            refundPercentage
+        });
+
+    } catch (error) {
+        console.error('Cancel booking error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};

@@ -149,3 +149,27 @@ export const getShowsByTheater = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
+
+export const addTheater = async (req, res) => {
+    try {
+        const { name, city, state, location, image, facilities } = req.body;
+
+        if (!name || !city || !state || !location || !image) {
+            return res.json({ success: false, message: "Missing required fields" });
+        }
+
+        const theater = await Theater.create({
+            name,
+            city,
+            state,
+            location,
+            image,
+            facilities: facilities || []
+        });
+
+        res.json({ success: true, message: "Theater added successfully", theater });
+    } catch (error) {
+        console.error("Error adding theater:", error);
+        res.json({ success: false, message: error.message });
+    }
+};

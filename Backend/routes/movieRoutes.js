@@ -6,14 +6,20 @@ import {
     updateMovie,
     deleteMovie,
     addDummyMovies,
+    seedTrendingMovies,
 } from "../controllers/movieController.js";
 import { requireAuth } from "@clerk/express";
 
 const router = express.Router();
 
+// Temporary route (Move to top to avoid :id conflict)
+router.post("/seed-trending", seedTrendingMovies);
+
 // Public routes
 router.get("/all", getAllMovies);
 router.get("/:id", getMovieById);
+
+// Admin-only routes (protected)
 
 // Admin-only routes (protected)
 router.post("/add", requireAuth(), addMovie);
