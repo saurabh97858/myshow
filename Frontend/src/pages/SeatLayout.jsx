@@ -137,6 +137,12 @@ const SeatLayout = () => {
 
   // Booking Logic
   const handleBooking = async () => {
+    if (!user) {
+      toast.error("Please login to book tickets");
+      navigate("/sign-in");
+      return;
+    }
+
     if (!contactDetails.name || !contactDetails.email || !contactDetails.mobile) {
       toast.error("Please fill in all contact details");
       return;

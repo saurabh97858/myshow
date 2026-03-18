@@ -9,6 +9,7 @@ const theaterSchema = new mongoose.Schema(
         image: { type: String, required: true }, // URL to theater image
         facilities: { type: [String], default: [] }, // e.g., ["Dolby Atmos", "Recliner", "Food Court"]
         isActive: { type: Boolean, default: true },
+        owner: { type: String, default: null }, // Clerk userId of the admin who owns this theater
     },
     { timestamps: true }
 );

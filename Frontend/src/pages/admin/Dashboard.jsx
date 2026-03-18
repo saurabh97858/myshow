@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 
 const Dashboard = () => {
 
-  const { axios, getToken, user, image_base_url } = useAppContext()
+  const { axios, getToken, user, image_base_url, isSuperAdmin, userRole } = useAppContext()
 
   const currency = import.meta.env.VITE_CURRENCY
 
@@ -30,16 +30,23 @@ const Dashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  const DashboardCards = [
+  // Cards visible to ALL admins
+  const commonCards = [
     { title: 'Total Bookings', value: dashboardData.totalBookings || '0', icon: ChartLineIcon, color: 'bg-blue-500/10 border-blue-500/20', iconColor: 'text-blue-500' },
     { title: 'Total Revenue', value: currency + ' ' + (dashboardData.totalRevenue || '0'), icon: CircleDollarSignIcon, color: 'bg-green-500/10 border-green-500/20', iconColor: 'text-green-500' },
     { title: 'Active Shows', value: dashboardData.activeShowsCount || '0', icon: PlayCircleIcon, color: 'bg-purple-500/10 border-purple-500/20', iconColor: 'text-purple-500' },
+    { title: isSuperAdmin ? 'Total Theaters' : 'My Theaters', value: dashboardData.theaters?.total || '0', icon: BuildingIcon, color: 'bg-orange-500/10 border-orange-500/20', iconColor: 'text-orange-500' },
+  ];
+
+  // Cards only for Super Admin
+  const superAdminCards = [
     { title: 'Total Users', value: dashboardData.totalUser || '0', icon: UsersIcon, color: 'bg-pink-500/10 border-pink-500/20', iconColor: 'text-pink-500' },
-    { title: 'Total Theaters', value: dashboardData.theaters?.total || '0', icon: BuildingIcon, color: 'bg-orange-500/10 border-orange-500/20', iconColor: 'text-orange-500' },
     { title: 'Total Movies', value: dashboardData.movies?.total || '0', icon: TicketIcon, color: 'bg-cyan-500/10 border-cyan-500/20', iconColor: 'text-cyan-500' },
     { title: 'Pending Support', value: dashboardData.support?.pending || '0', icon: HelpCircle, color: 'bg-yellow-500/10 border-yellow-500/20', iconColor: 'text-yellow-500' },
-    { title: 'Solved Support', value: dashboardData.support?.solved || '0', icon: HelpCircle, color: 'bg-emerald-500/10 border-emerald-500/20', iconColor: 'text-emerald-500' }
-  ]
+    { title: 'Solved Support', value: dashboardData.support?.solved || '0', icon: HelpCircle, color: 'bg-emerald-500/10 border-emerald-500/20', iconColor: 'text-emerald-500' },
+  ];
+
+  const DashboardCards = isSuperAdmin ? [...commonCards, ...superAdminCards] : commonCards;
 
   const fetchDashboardData = async (isManualRefresh = false) => {
     if (isManualRefresh) {
@@ -97,7 +104,7 @@ const Dashboard = () => {
   return !loading ? (
     <>
       <div className="flex items-center justify-between mb-6">
-        <Title text1="Admin" text2=" Dashboard" />
+        <Title text1={isSuperAdmin ? "Super Admin" : "My Theater"} text2=" Dashboard" />
         <div className="flex items-center gap-3">
           {lastUpdated && (
             <p className="text-xs text-gray-400">
@@ -129,7 +136,8 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Support Tickets Analytics */}
+      {/* Support Tickets Analytics - Super Admin Only */}
+      {isSuperAdmin && (
       <div className='mt-6'>
         <h2 className='text-base font-semibold mb-3'>Support Tickets Overview</h2>
         <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
@@ -147,6 +155,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Two Column Layout for Popular Movies and Recent Activity */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6'>
@@ -226,7 +235,7 @@ const Dashboard = () => {
       )}
 
       {/* Active Movies in Theaters */}
-      <p className='mt-8 text-base font-semibold'>Active Movies in Theaters</p>
+      <p className='mt-8 text-base font-semibold'>{isSuperAdmin ? 'Active Movies in Theaters' : 'Active Movies in My Theaters'}</p>
 
       <div className='relative flex flex-wrap gap-4 mt-4 max-w-5xl'>
         <BlurCircle top='100px' left='-100px' />

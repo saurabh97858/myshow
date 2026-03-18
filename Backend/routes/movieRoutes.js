@@ -8,7 +8,7 @@ import {
     addDummyMovies,
     seedTrendingMovies,
 } from "../controllers/movieController.js";
-import { requireAuth } from "@clerk/express";
+import { protectSuperAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -22,9 +22,9 @@ router.get("/:id", getMovieById);
 // Admin-only routes (protected)
 
 // Admin-only routes (protected)
-router.post("/add", requireAuth(), addMovie);
-router.put("/update/:id", requireAuth(), updateMovie);
-router.delete("/delete/:id", requireAuth(), deleteMovie);
-router.post("/add-dummy", requireAuth(), addDummyMovies);
+router.post("/add", protectSuperAdmin, addMovie);
+router.put("/update/:id", protectSuperAdmin, updateMovie);
+router.delete("/delete/:id", protectSuperAdmin, deleteMovie);
+router.post("/add-dummy", protectSuperAdmin, addDummyMovies);
 
 export default router;

@@ -5,7 +5,26 @@ import Theater from "../models/Theater.js"; // Import Theater model
 // ✅ Add a show
 export const addShow = async (req, res) => {
   try {
-    const { movieId, showsInput, priceStandard, pricePremium, priceVIP } = req.body;
+    const { movieId, theaterId, showsInput, priceStandard, pricePremium, priceVIP } = req.body;
+    const { userId } = req.auth;
+
+    if (!theaterId) {
+      return res.json({ success: false, message: "Theater ID is required" });
+    }
+
+    // Verify theater exists and belongs to this admin (or user is superadmin)
+    const theater = await Theater.findById(theaterId);
+    if (!theater) {
+      return res.json({ success: false, message: "Theater not found" });
+    }
+
+    const { dbUser } = req; // Added by protectAdmin middleware if we populate it, but let's query just in case
+    const dbUserCheck = (await import("../models/userModel.js")).default;
+    const userRole = await dbUserCheck.findById(userId).select('role');
+    
+    if (userRole?.role !== 'superadmin' && theater.owner !== userId) {
+      return res.json({ success: false, message: "You can only add shows to your own theaters" });
+    }
 
     // Check if movie exists in DB
     const movie = await Movie.findById(movieId);
@@ -17,6 +36,7 @@ export const addShow = async (req, res) => {
     // Create shows with new price structure
     const showsToCreate = showsInput.map(({ date, time }) => ({
       movie: movieId,
+      theater: theaterId,
       showDateTime: new Date(`${date}T${time}`),
       priceStandard: priceStandard || 100,
       pricePremium: pricePremium || 200,

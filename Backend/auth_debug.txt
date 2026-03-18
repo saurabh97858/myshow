@@ -1,0 +1,8 @@
+2026-03-18T04:07:47.639Z -    ❌ No userId found in Clerk auth. AuthHeader length: 178
+2026-03-18T04:07:47.641Z -    ⚠️ Token sent but Clerk did not provide UID. Returning 401 equivalent.
+2026-03-18T04:26:20.804Z -    ❌ No userId found in Clerk auth. AuthHeader length: 178
+2026-03-18T04:26:20.805Z -    ⚠️ Token sent but Clerk did not provide UID. Returning 401 equivalent.
+2026-03-18T04:50:52.301Z -    ❌ No userId found in Clerk auth. AuthHeader length: 178
+2026-03-18T04:50:52.301Z -    ⚠️ Token sent but Clerk did not provide UID. Returning 401 equivalent.
+2026-03-18T04:51:59.564Z -    ❌ No userId found in Clerk auth. AuthHeader length: 178
+2026-03-18T04:51:59.578Z -    ⚠️ Token sent but Clerk did not provide UID. Returning 401 equivalent.

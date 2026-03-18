@@ -8,7 +8,7 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['booking', 'reminder', 'trending', 'support', 'offer'],
+        enum: ['booking', 'reminder', 'trending', 'support', 'offer', 'admin_application'],
         required: true,
         index: true
     },
@@ -25,7 +25,8 @@ const notificationSchema = new mongoose.Schema({
         movieId: { type: mongoose.Schema.Types.ObjectId, ref: 'Movie' },
         supportId: { type: mongoose.Schema.Types.ObjectId, ref: 'Support' },
         showId: { type: mongoose.Schema.Types.ObjectId, ref: 'Show' },
-        offerId: { type: String }
+        offerId: { type: String },
+        applicationId: { type: mongoose.Schema.Types.ObjectId, ref: 'AdminApplication' }
     },
     read: {
         type: Boolean,

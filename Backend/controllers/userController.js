@@ -34,7 +34,10 @@ export const getUserBookings = async (req, res) => {
 export const updateFavourite = async (req, res) => {
     try {
         const { movieId } = req.body;
-        const userId = req.auth.userId;
+        const userId = req.auth?.userId;
+        if (!userId) {
+            return res.json({ success: false, message: "User not authenticated" });
+        }
 
         const user = await clerkClient.users.getUser(userId);
 
@@ -64,7 +67,11 @@ export const updateFavourite = async (req, res) => {
 // API controller function to get user's favourite movies
 export const getFavourites = async (req, res) => {
     try {
-        const user = await clerkClient.users.getUser(req.auth.userId);
+        const userId = req.auth?.userId;
+        if (!userId) {
+            return res.json({ success: true, movies: [] });
+        }
+        const user = await clerkClient.users.getUser(userId);
         const favourites = user.privateMetadata?.favourites || [];
 
         if (favourites.length === 0) {

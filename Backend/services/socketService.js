@@ -10,6 +10,11 @@ export const initializeSocket = (server) => {
                 "https://myshow-su42.vercel.app",
                 "https://myshow-wine.vercel.app",
                 "http://localhost:5173",
+                "http://localhost:5174",
+                "http://localhost:5175",
+                "http://localhost:5176",
+                "http://localhost:5177",
+                /^http:\/\/localhost:517\d$/,
                 /^https:\/\/myshow-.*\.vercel\.app$/
             ],
             credentials: true,

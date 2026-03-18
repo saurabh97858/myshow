@@ -27,6 +27,8 @@ import reviewRouter from './routes/reviewRoutes.js';
 import couponRouter from './routes/couponRoutes.js';
 import analyticsRouter from './routes/analyticsRoutes.js';
 import bulkRouter from './routes/bulkRoutes.js';
+import adminApplicationRouter from './routes/adminApplicationRoutes.js';
+import adminAuthRouter from './routes/adminAuthRoutes.js';
 import { initializeSocket } from './services/socketService.js';
 import http from 'http';
 
@@ -42,6 +44,32 @@ await connectDB();
 // 🔌 Initialize Socket.IO
 initializeSocket(server);
 
+// 🧩 Middlewares - Logging & CORS first
+app.use((req, res, next) => {
+  console.log(`📢 [${req.method}] ${req.url}`);
+  next();
+});
+
+// ✅ CORS for frontend + Clerk
+app.use(
+  cors({
+    origin: [
+      "https://myshow-su42.vercel.app",
+      "https://myshow-wine.vercel.app",
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:5175",
+      "http://localhost:5176",
+      "http://localhost:5177",
+      /^http:\/\/localhost:517\d$/, // Allow localhost:5170-5179
+      /^https:\/\/myshow-.*\.vercel\.app$/ // Allow all Vercel previews
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+
 // 🔒 Security Middlewares
 // Helmet helps secure Express apps by setting various HTTP headers
 app.use(helmet({
@@ -56,43 +84,38 @@ app.use(helmet({
   },
 }));
 
-// 🧩 Middlewares
 app.use(express.json({ limit: '10mb' })); // Limit JSON payload size
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 🔍 Request Logger
-app.use((req, res, next) => {
-  console.log(`📢 [${req.method}] ${req.url}`);
-  next();
-});
-
-// ✅ CORS for frontend + Clerk
-app.use(
-  cors({
-    origin: [
-      "https://myshow-su42.vercel.app",
-      "https://myshow-wine.vercel.app",
-      "http://localhost:5173",
-      /^https:\/\/myshow-.*\.vercel\.app$/ // Allow all Vercel previews
-    ],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
-
 // ✅ Clerk middleware
+console.log("🔑 [Server] Clerk Init - PublishableKey:", !!process.env.CLERK_PUBLISHABLE_KEY, "SecretKey:", !!process.env.CLERK_SECRET_KEY);
 app.use(clerkMiddleware());
+
+// NOTE: Clerk's req.auth is a Proxy — it supports BOTH:
+//   req.auth()        → function call (used by getAuth(req))
+//   req.auth.userId   → property access (backwards compat)
+// Do NOT overwrite req.auth anywhere or getAuth(req) will crash.
+
+app.use((req, res, next) => {
+    if (req.headers.authorization) {
+        console.log(`🛰️ [Server] Auth Header detected for ${req.url} (Length: ${req.headers.authorization.length}) | Start: ${req.headers.authorization.substring(0, 20)}...`);
+    }
+    next();
+});
 
 // 🔒 Apply rate limiting to all API routes
 app.use('/api/', apiLimiter);
 
 // ✅ Routes
-app.get('/', (req, res) => res.send('Server is Live!'));
+app.get('/', (req, res) => {
+    console.log(`🏠 [Server] Root route accessed from ${req.ip} | Method: ${req.method} | OriginalURL: ${req.originalUrl}`);
+    res.send('Server is Live!');
+});
 app.use('/api/inngest', serve({ client: inngest, functions }));
 app.use('/api/movie', movieRouter);
 app.use('/api/show', showRouter);
 app.use('/api/booking', bookingRouter);
+app.use('/api/admin-application', adminApplicationRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/user', userRouter);
 app.use('/api/theater', theaterRouter);
@@ -104,7 +127,14 @@ app.use('/api/reviews', reviewRouter);
 app.use('/api/coupons', couponRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/bulk', bulkRouter);
+app.use('/api/admin/auth', adminAuthRouter);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// 404 Catch-all
+app.use((req, res) => {
+    console.error(`⚠️ [404 Not Found] ${req.method} ${req.url} - No route matched.`);
+    res.status(404).json({ success: false, message: `Route ${req.method} ${req.url} not found on this server.` });
+});
 
 // ✅ Start server
 if (process.env.NODE_ENV !== 'production') {

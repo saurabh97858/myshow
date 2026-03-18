@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState, useRef, useEffect } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { assets } from '../assets/assets'
-import { MenuIcon, SearchIcon, TicketPlus, XIcon, ShieldCheck } from 'lucide-react'
+import { MenuIcon, SearchIcon, TicketPlus, XIcon, ShieldCheck, Building2 } from 'lucide-react'
 import { UserButton, useUser } from '@clerk/clerk-react'
 
 import { useAppContext } from '../context/AppContext'
@@ -12,31 +12,58 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const { user } = useUser()
   const navigate = useNavigate()
+  const location = useLocation()
   const { favouriteMovies, isAdmin } = useAppContext()
 
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isHidden, setIsHidden] = useState(false)
+  const lastScrollY = useRef(0)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true)
+      const currentScrollY = window.scrollY
+
+      // Add background when scrolled
+      setIsScrolled(currentScrollY > 50)
+
+      // Hide/Show based on scroll direction
+      if (currentScrollY > 100) {
+        if (currentScrollY > lastScrollY.current && currentScrollY - lastScrollY.current > 5) {
+          // Scrolling DOWN → hide navbar
+          setIsHidden(true)
+        } else if (lastScrollY.current > currentScrollY && lastScrollY.current - currentScrollY > 5) {
+          // Scrolling UP → show navbar
+          setIsHidden(false)
+        }
       } else {
-        setIsScrolled(false)
+        setIsHidden(false)
       }
+
+      lastScrollY.current = currentScrollY
     }
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const navItems = [
-    { to: '/', label: 'Home' },
-    { to: '/movies', label: 'Movies' },
-    { to: '/trending', label: 'Trending' },
-    { to: '/favourite', label: 'Favourites' },
+    { to: '/', label: 'Home', color: 'from-violet-500 to-fuchsia-500', glow: 'shadow-violet-500/40' },
+    { to: '/movies', label: 'Movies', color: 'from-cyan-400 to-blue-500', glow: 'shadow-cyan-500/40' },
+    { to: '/trending', label: 'Trending', color: 'from-amber-400 to-orange-500', glow: 'shadow-amber-500/40' },
+    { to: '/favourite', label: 'Favourites', color: 'from-pink-500 to-rose-500', glow: 'shadow-pink-500/40' },
   ]
 
+  const isActive = (path) => {
+    if (path === '/') return location.pathname === '/'
+    return location.pathname.startsWith(path)
+  }
+
   return (
-    <nav className={`fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-12 lg:px-12 py-4 transition-all duration-300 ${isScrolled ? 'bg-black/70 backdrop-blur-md shadow-lg py-3' : 'bg-gradient-to-b from-black/80 to-transparent'}`}>
+    <nav
+      className={`fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-12 lg:px-12 py-4 transition-all duration-500 ease-in-out
+        ${isScrolled ? 'bg-black/70 backdrop-blur-md shadow-lg py-3' : 'bg-gradient-to-b from-black/80 to-transparent'}
+        ${isHidden ? '-translate-y-full' : 'translate-y-0'}
+      `}
+    >
 
       {/* Logo */}
       <Link to="/" className="hover:opacity-80 transition-opacity">
@@ -45,13 +72,28 @@ const Navbar = () => {
 
       {/* Desktop Links - Premium Glass Pill */}
       <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 bg-white/5 border border-white/10 px-2 py-1.5 rounded-full backdrop-blur-lg shadow-lg ring-1 ring-white/5">
-        {navItems.map(({ to, label }) => (
+        {navItems.map(({ to, label, color, glow }) => (
           <Link
             key={label}
             to={to}
-            className="text-gray-300 font-medium px-5 py-2 rounded-full hover:text-white hover:bg-white/10 transition-all duration-300 text-sm tracking-wide"
+            className={`relative font-medium px-5 py-2 rounded-full transition-all duration-300 text-sm tracking-wide group overflow-hidden
+              ${isActive(to)
+                ? `text-white bg-gradient-to-r ${color} shadow-lg ${glow}`
+                : 'text-gray-300 hover:text-white'
+              }
+            `}
           >
-            {label}
+            {/* Hover gradient background */}
+            {!isActive(to) && (
+              <span className={`absolute inset-0 bg-gradient-to-r ${color} opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-full`} />
+            )}
+            {/* Glow effect on hover */}
+            <span className={`absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg ${glow}`} style={{ pointerEvents: 'none' }} />
+            <span className="relative z-10">{label}</span>
+            {/* Active indicator dot */}
+            {isActive(to) && (
+              <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full animate-pulse" />
+            )}
           </Link>
         ))}
 
@@ -59,10 +101,18 @@ const Navbar = () => {
         {isAdmin && (
           <Link
             to="/admin"
-            className="text-primary font-medium px-5 py-2 rounded-full hover:bg-primary/10 transition-all duration-300 flex items-center gap-2 text-sm"
+            className={`relative font-medium px-5 py-2 rounded-full transition-all duration-300 flex items-center gap-2 text-sm group overflow-hidden
+              ${isActive('/admin')
+                ? 'text-white bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/40'
+                : 'text-emerald-400 hover:text-white'
+              }
+            `}
           >
-            <ShieldCheck className="w-4 h-4" />
-            Admin
+            {!isActive('/admin') && (
+              <span className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-full" />
+            )}
+            <ShieldCheck className="w-4 h-4 relative z-10" />
+            <span className="relative z-10">Admin</span>
           </Link>
         )}
       </div>
@@ -78,8 +128,9 @@ const Navbar = () => {
 
         {!user ? (
           <Link to="/sign-in">
-            <button className="px-6 py-2 bg-gradient-to-r from-primary to-rose-600 hover:from-primary-dull hover:to-rose-700 text-white rounded-full font-semibold shadow-lg shadow-primary/30 transition-all duration-300 transform hover:scale-105 active:scale-95 text-sm tracking-wide">
-              Login
+            <button className="relative px-6 py-2 bg-gradient-to-r from-primary to-rose-600 hover:from-primary-dull hover:to-rose-700 text-white rounded-full font-semibold shadow-lg shadow-primary/30 transition-all duration-300 transform hover:scale-105 active:scale-95 text-sm tracking-wide overflow-hidden group">
+              <span className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <span className="relative z-10">Login</span>
             </button>
           </Link>
         ) : (
@@ -93,6 +144,12 @@ const Navbar = () => {
             }}
           >
             <UserButton.MenuItems>
+              <UserButton.Action
+                label="Partner With Us"
+                labelIcon={<Building2 className="w-4 h-4" />}
+                onClick={() => navigate('/apply-admin')}
+              />
+
               <UserButton.Action
                 label="My Bookings"
                 labelIcon={<TicketPlus className="w-4 h-4" />}
@@ -133,12 +190,16 @@ const Navbar = () => {
 
         {/* Mobile Links */}
         <div className="flex flex-col items-center gap-6 w-full px-6">
-          {navItems.map(({ to, label }) => (
+          {navItems.map(({ to, label, color }) => (
             <Link
               key={label}
               to={to}
               onClick={() => setIsOpen(false)}
-              className="text-gray-300 text-3xl font-bold hover:text-primary hover:tracking-wider transition-all duration-300"
+              className={`text-3xl font-bold transition-all duration-300 ${
+                isActive(to)
+                  ? 'bg-gradient-to-r bg-clip-text text-transparent ' + color + ' tracking-wider'
+                  : 'text-gray-300 hover:text-primary hover:tracking-wider'
+              }`}
             >
               {label}
             </Link>
@@ -151,15 +212,15 @@ const Navbar = () => {
               <Link
                 to="/admin"
                 onClick={() => setIsOpen(false)}
-                className="text-primary text-xl font-medium hover:text-white transition flex items-center gap-2"
+                className="text-emerald-400 text-xl font-medium hover:text-white transition flex items-center gap-2"
               >
                 <ShieldCheck className="w-6 h-6" />
                 Admin Panel
               </Link>
             )}
-          </div>
-        </div>
-      </div>
+          </div> {/* Close mt-4 */}
+        </div> {/* Close mobile links container */}
+      </div> {/* Close overlay */}
     </nav>
   )
 }

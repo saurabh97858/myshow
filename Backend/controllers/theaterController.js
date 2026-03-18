@@ -1,6 +1,7 @@
 import Theater from "../models/Theater.js";
 import Show from "../models/showModel.js";
 import Movie from "../models/Movie.js";
+import { getAuth } from "@clerk/express";
 
 export const getLocations = async (req, res) => {
     try {
@@ -152,6 +153,7 @@ export const getShowsByTheater = async (req, res) => {
 
 export const addTheater = async (req, res) => {
     try {
+        const { userId } = getAuth(req);
         const { name, city, state, location, image, facilities } = req.body;
 
         if (!name || !city || !state || !location || !image) {
@@ -164,12 +166,25 @@ export const addTheater = async (req, res) => {
             state,
             location,
             image,
-            facilities: facilities || []
+            facilities: facilities || [],
+            owner: userId || null
         });
 
         res.json({ success: true, message: "Theater added successfully", theater });
     } catch (error) {
         console.error("Error adding theater:", error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// Get theaters owned by the current admin
+export const getMyTheaters = async (req, res) => {
+    try {
+        const { userId } = getAuth(req);
+        const theaters = await Theater.find({ owner: userId });
+        res.json({ success: true, theaters });
+    } catch (error) {
+        console.error("Error fetching my theaters:", error);
         res.json({ success: false, message: error.message });
     }
 };
