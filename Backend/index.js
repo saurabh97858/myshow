@@ -147,10 +147,9 @@ app.use((req, res) => {
 });
 
 // ✅ Start server
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-  server.listen(port, () =>
-    console.log(`✅ Server running at http://localhost:${port}`)
-  );
-}
+// On Render, we need to listen explicitly. Vercel handles this differently.
+server.listen(port, () =>
+  console.log(`✅ Server running at http://localhost:${port}`)
+);
 
 export default app;
