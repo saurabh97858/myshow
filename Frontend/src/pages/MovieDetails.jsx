@@ -147,6 +147,11 @@ const MovieDetails = () => {
   // const totalPrice = ... (removed, using dynamic func below)
 
   const handleBuyTickets = () => {
+    if (!user) {
+      toast.error("Please login to proceed with booking");
+      navigate("/sign-in");
+      return;
+    }
     navigate(`/theaters/${movieId}`);
   };
 

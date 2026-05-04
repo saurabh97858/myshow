@@ -2,6 +2,7 @@ import { Star, Trash2, Calendar, Clock, Ticket } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
 
 const formatRuntime = (minutes) => {
   if (!minutes && minutes !== 0) return null;
@@ -12,7 +13,7 @@ const formatRuntime = (minutes) => {
 
 const MovieCard = ({ movie, className, preferBackdrop }) => {
   const navigate = useNavigate();
-  const { isAdmin, deleteMovie } = useAppContext();
+  const { isAdmin, deleteMovie, user } = useAppContext();
 
   // Use _id from MongoDB
   const movieId = movie?._id;
@@ -112,6 +113,11 @@ const MovieCard = ({ movie, className, preferBackdrop }) => {
           <button
             onClick={(e) => {
               e.stopPropagation();
+              if (!user) {
+                toast.error("Please login to proceed with booking");
+                navigate("/sign-in");
+                return;
+              }
               navigate(`/theaters/${movieId}`);
               window.scrollTo(0, 0);
             }}

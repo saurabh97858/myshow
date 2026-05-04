@@ -1,0 +1,7 @@
+STATUS: 500
+BODY:
+A server error has occurred
+
+FUNCTION_INVOCATION_FAILED
+
+bom1::942kn-1773832643355-f934bb9bab3f

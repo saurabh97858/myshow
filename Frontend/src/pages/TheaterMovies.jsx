@@ -3,10 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { MapPin, Clock, Calendar, ChevronLeft } from 'lucide-react';
 import Loading from '../components/Loading';
+import toast from 'react-hot-toast';
 
 const TheaterMovies = () => {
     const { theaterId } = useParams();
-    const { axios } = useAppContext();
+    const { axios, user } = useAppContext();
     const [theater, setTheater] = useState(null);
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -82,7 +83,14 @@ const TheaterMovies = () => {
                                     {movie.shows.map((show) => (
                                         <button
                                             key={show.showId}
-                                            onClick={() => navigate(`/movies/${movie._id}/${show.showId}`)}
+                                            onClick={() => {
+                                                if (!user) {
+                                                    toast.error("Please login to proceed with booking");
+                                                    navigate("/sign-in");
+                                                    return;
+                                                }
+                                                navigate(`/movies/${movie._id}/${show.showId}`);
+                                            }}
                                             className="px-1.5 sm:px-2 py-0.5 rounded border border-white/20 hover:border-primary hover:bg-primary/10 transition-all flex flex-col items-center bg-[#09090B] min-w-[45px] sm:min-w-[50px]"
                                         >
                                             <span className="text-green-400 font-bold text-[9px] sm:text-[10px] whitespace-nowrap">{formatTime(show.time)}</span>

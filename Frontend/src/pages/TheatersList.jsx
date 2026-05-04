@@ -4,9 +4,10 @@ import { MapPin, Navigation, Video, Calendar, Star } from 'lucide-react';
 import Loading from '../components/Loading';
 import { useNavigate } from 'react-router-dom';
 import BlurCircle from '../components/BlurCircle';
+import toast from 'react-hot-toast';
 
 const TheatersList = () => {
-    const { userLocation, axios } = useAppContext();
+    const { userLocation, axios, user } = useAppContext();
     const [theaters, setTheaters] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
@@ -86,7 +87,14 @@ const TheatersList = () => {
                                 </div>
 
                                 <button
-                                    onClick={() => navigate(`/theater/${theater._id}`)}
+                                    onClick={() => {
+                                        if (!user) {
+                                            toast.error("Please login to proceed with booking");
+                                            navigate("/sign-in");
+                                            return;
+                                        }
+                                        navigate(`/theater/${theater._id}`);
+                                    }}
                                     className="w-full py-3 bg-white text-black font-bold rounded-xl flex items-center justify-center gap-2 group-hover:bg-primary group-hover:text-white transition-all transform active:scale-95">
                                     <Calendar className="w-4 h-4" />
                                     View Shows

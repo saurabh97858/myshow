@@ -1,0 +1,26 @@
+Error: Cannot find module './encoding'
+Require stack:
+- C:\project\myshow\Frontend\node_modules\mongodb-connection-string-url\node_modules\whatwg-url\lib\url-state-machine.js
+- C:\project\myshow\Frontend\node_modules\mongodb-connection-string-url\node_modules\whatwg-url\lib\URL-impl.js
+- C:\project\myshow\Frontend\node_modules\mongodb-connection-string-url\node_modules\whatwg-url\lib\URL.js
+- C:\project\myshow\Frontend\node_modules\mongodb-connection-string-url\node_modules\whatwg-url\webidl2js-wrapper.js
+- C:\project\myshow\Frontend\node_modules\mongodb-connection-string-url\node_modules\whatwg-url\index.js
+- C:\project\myshow\Frontend\node_modules\mongodb-connection-string-url\lib\index.js
+- C:\project\myshow\Frontend\node_modules\mongoose\node_modules\mongodb\lib\connection_string.js
+- C:\project\myshow\Frontend\node_modules\mongoose\node_modules\mongodb\lib\mongo_client.js
+- C:\project\myshow\Frontend\node_modules\mongoose\node_modules\mongodb\lib\change_stream.js
+- C:\project\myshow\Frontend\node_modules\mongoose\node_modules\mongodb\lib\index.js
+- C:\project\myshow\Frontend\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js
+- C:\project\myshow\Frontend\node_modules\mongoose\lib\drivers\node-mongodb-native\index.js
+- C:\project\myshow\Frontend\node_modules\mongoose\lib\index.js
+- C:\project\myshow\Frontend\node_modules\mongoose\index.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (C:\project\myshow\Frontend\node_modules\mongodb-connection-string-url\node_modules\whatwg-url\lib\url-state-machine.js:5:34)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
