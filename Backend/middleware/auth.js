@@ -6,12 +6,15 @@ import fs from "fs";
 import path from "path";
 
 const debugLog = (msg) => {
+    /*
     try {
         const logPath = path.join(process.cwd(), "auth_debug.txt");
         fs.appendFileSync(logPath, `${new Date().toISOString()} - ${msg}\n`);
     } catch (err) {
         console.error("Failed to write debug log:", err.message);
     }
+    */
+    console.log(`[AuthDebug] ${msg}`);
 };
 
 // Middleware to protect admin routes (allows Clerk Admin/SuperAdmin OR Custom Admin Account)

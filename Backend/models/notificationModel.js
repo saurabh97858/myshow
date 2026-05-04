@@ -42,6 +42,6 @@ const notificationSchema = new mongoose.Schema({
 // Compound index for user queries
 notificationSchema.index({ user: 1, read: 1, createdAt: -1 });
 
-const Notification = mongoose.model('Notification', notificationSchema);
+const Notification = mongoose.models.Notification || mongoose.model('Notification', notificationSchema);
 
 export default Notification;

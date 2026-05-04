@@ -60,6 +60,6 @@ reviewSchema.index({ helpful: -1 });
 // Index for sorting by rating
 reviewSchema.index({ rating: -1 });
 
-const Review = mongoose.model('Review', reviewSchema);
+const Review = mongoose.models.Review || mongoose.model('Review', reviewSchema);
 
 export default Review;

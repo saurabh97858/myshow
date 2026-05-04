@@ -32,6 +32,6 @@ const supportSchema = new mongoose.Schema({
     }
 });
 
-const Support = mongoose.model('Support', supportSchema);
+const Support = mongoose.models.Support || mongoose.model('Support', supportSchema);
 
 export default Support;

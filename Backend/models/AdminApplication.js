@@ -30,5 +30,5 @@ const adminApplicationSchema = new mongoose.Schema(
 // Prevent duplicate applications from same user
 adminApplicationSchema.index({ userId: 1, status: 1 });
 
-const AdminApplication = mongoose.model("AdminApplication", adminApplicationSchema);
+const AdminApplication = mongoose.models.AdminApplication || mongoose.model('AdminApplication', adminApplicationSchema);
 export default AdminApplication;

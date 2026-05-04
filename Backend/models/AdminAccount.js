@@ -30,5 +30,5 @@ adminAccountSchema.methods.comparePassword = async function (candidatePassword) 
     return await bcrypt.compare(candidatePassword, this.password);
 };
 
-const AdminAccount = mongoose.model("AdminAccount", adminAccountSchema);
+const AdminAccount = mongoose.models.AdminAccount || mongoose.model('AdminAccount', adminAccountSchema);
 export default AdminAccount;

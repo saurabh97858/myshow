@@ -64,6 +64,6 @@ const couponSchema = new mongoose.Schema({
 // Index for querying active coupons
 couponSchema.index({ active: 1, validTill: 1 });
 
-const Coupon = mongoose.model('Coupon', couponSchema);
+const Coupon = mongoose.models.Coupon || mongoose.model('Coupon', couponSchema);
 
 export default Coupon;

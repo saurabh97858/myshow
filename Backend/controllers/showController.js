@@ -173,16 +173,27 @@ export const getShowById = async (req, res) => {
     const show = await Show.findById(showId).populate("movie").populate("theater");
     if (!show) return res.json({ success: false, message: "Show not found" });
 
+    // Dynamic Pricing Logic (Feature 6)
+    const showDate = new Date(show.showDateTime);
+    const isWeekend = (showDate.getDay() === 0 || showDate.getDay() === 6);
+    const hour = showDate.getHours();
+    const isPrimeTime = (hour >= 18 && hour <= 22);
+    
+    let demandMultiplier = 1.0;
+    if (isWeekend) demandMultiplier += 0.15; // 15% surge on weekends
+    if (isPrimeTime) demandMultiplier += 0.10; // 10% surge in prime time
+
     // Format the show data with new price structure
     const formattedShow = {
       _id: show._id,
       movie: show.movie,
       theater: show.theater,
       showDateTime: show.showDateTime,
-      priceStandard: show.priceStandard || 100,
-      pricePremium: show.pricePremium || 200,
-      priceVIP: show.priceVIP || 300,
+      priceStandard: Math.round((show.priceStandard || 100) * demandMultiplier),
+      pricePremium: Math.round((show.pricePremium || 200) * demandMultiplier),
+      priceVIP: Math.round((show.priceVIP || 300) * demandMultiplier),
       occupiedSeats: show.occupiedSeats,
+      dynamicPricingApplied: demandMultiplier > 1,
       dateTime: [{
         time: show.showDateTime.toISOString().split("T")[1].substring(0, 5),
         showId: show._id,

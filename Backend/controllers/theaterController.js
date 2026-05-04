@@ -25,7 +25,7 @@ export const getLocations = async (req, res) => {
         res.status(200).json({ success: true, locations });
     } catch (error) {
         console.error("Error fetching locations:", error);
-        res.status(500).json({ success: false, message: "Internal Server Error" });
+        res.status(500).json({ success: false, message: "Internal Server Error", error: error.message, stack: error.stack });
     }
 };
 
