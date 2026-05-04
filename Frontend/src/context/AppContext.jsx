@@ -252,6 +252,18 @@ export const AppProvider = ({ children }) => {
 
   // Fetch shows and movies on mount
   useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        console.log(`🔌 [ConnectionTest] Pinging Backend: ${backendUrl}/api/ai/ping ...`);
+        const { data } = await api.get("/api/ai/ping");
+        console.log("✅ [ConnectionTest] Backend Reachable:", data.message);
+      } catch (err) {
+        console.error("❌ [ConnectionTest] Backend Unreachable:", err.message);
+        if (err.response) console.error("   Status:", err.response.status, "Data:", err.response.data);
+      }
+    };
+    
+    checkConnection();
     fetchShows();
     fetchMovies();
   }, []);
