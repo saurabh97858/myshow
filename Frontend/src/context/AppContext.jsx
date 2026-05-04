@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 // Set base URL from environment or fallback to production backend
-const backendUrl = import.meta.env.VITE_BASE_URL || "";
+const backendUrl = import.meta.env.VITE_BASE_URL || "https://myshow-5pza.onrender.com";
 axios.defaults.baseURL = backendUrl;
 
 // Create an axios instance for consistency
