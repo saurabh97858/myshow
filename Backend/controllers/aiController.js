@@ -6,26 +6,32 @@ export const chatWithAI = async (req, res) => {
         const { prompt } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
         
+        console.log(`🤖 [AI Chat] Request received. Key configured: ${!!apiKey}`);
+
         if (!apiKey) {
             return res.status(500).json({ success: false, message: "Gemini API key is not configured in .env" });
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-        const systemPrompt = `You are a helpful, enthusiastic, and knowledgeable movie concierge for the ticketing app "QuickShow". 
-You help users find movies, choose seats, and discover interesting cinema facts.
-Keep your responses concise, friendly, and formatted properly using markdown when necessary.
-User Query: ${prompt}`;
-
-        const result = await model.generateContent(systemPrompt);
-        const response = await result.response;
-        const text = response.text();
-
-        res.json({ success: true, text });
+        
+        // Try Flash first, fallback to Pro if it fails
+        let model;
+        try {
+            console.log("🤖 [AI Chat] Attempting with gemini-1.5-flash...");
+            model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const result = await model.generateContent(prompt);
+            const text = result.response.text();
+            return res.json({ success: true, text });
+        } catch (flashError) {
+            console.warn("⚠️ [AI Chat] Flash model failed, falling back to gemini-pro:", flashError.message);
+            model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const result = await model.generateContent(prompt);
+            const text = result.response.text();
+            return res.json({ success: true, text });
+        }
     } catch (error) {
-        console.error("AI Chat Error:", error);
-        res.json({ success: false, message: "Failed to communicate with AI" });
+        console.error("❌ AI Chat Critical Error:", error);
+        res.json({ success: false, message: "Failed to communicate with AI: " + error.message });
     }
 };
 
@@ -35,13 +41,13 @@ export const generateMovieDetails = async (req, res) => {
         const { title } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
 
+        console.log(`🤖 [AI Generate] Request for "${title}". Key configured: ${!!apiKey}`);
+
         if (!apiKey) {
             return res.json({ success: false, message: "Gemini API key is not configured" });
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
         const prompt = `Generate a JSON object containing details for a hypothetical or real movie titled "${title}". 
 The JSON must have the following keys exactly:
 - description (string: engaging plot summary of 2-3 sentences)
@@ -51,8 +57,18 @@ The JSON must have the following keys exactly:
 - casts (string: comma separated list of 3 fake or real actors)
 Only return the raw JSON, do not wrap it in markdown code blocks.`;
 
-        const result = await model.generateContent(prompt);
-        const textResponse = result.response.text();
+        let model;
+        let textResponse;
+        try {
+            model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const result = await model.generateContent(prompt);
+            textResponse = result.response.text();
+        } catch (fError) {
+            console.warn("⚠️ [AI Generate] Flash failed, fallback to Pro:", fError.message);
+            model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const result = await model.generateContent(prompt);
+            textResponse = result.response.text();
+        }
         
         // Clean markdown backticks just in case
         const jsonStr = textResponse.replace(/^```(json)?\n?/i, '').replace(/\n?```$/i, '').trim();
@@ -60,7 +76,7 @@ Only return the raw JSON, do not wrap it in markdown code blocks.`;
 
         res.json({ success: true, movieDetails });
     } catch (error) {
-        console.error("AI Generate Error:", error);
+        console.error("❌ AI Generate Critical Error:", error);
         res.json({ success: false, message: "Failed to generate movie details: " + error.message });
     }
 };
