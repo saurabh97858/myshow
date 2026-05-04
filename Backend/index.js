@@ -65,13 +65,10 @@ app.use(
     origin: [
       "https://myshow-su42.vercel.app",
       "https://myshow-wine.vercel.app",
+      "https://myshow-livid.vercel.app",
       "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:5175",
-      "http://localhost:5176",
-      "http://localhost:5177",
-      /^http:\/\/localhost:517\d$/, // Allow localhost:5170-5179
-      /^https:\/\/.*\.vercel\.app$/ // Allow all Vercel deployments
+      /^http:\/\/localhost:517\d$/, 
+      /^https:\/\/.*\.vercel\.app$/ 
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
