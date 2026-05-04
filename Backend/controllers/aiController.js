@@ -11,7 +11,7 @@ export const chatWithAI = async (req, res) => {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const systemPrompt = `You are a helpful, enthusiastic, and knowledgeable movie concierge for the ticketing app "QuickShow". 
 You help users find movies, choose seats, and discover interesting cinema facts.
@@ -40,7 +40,7 @@ export const generateMovieDetails = async (req, res) => {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `Generate a JSON object containing details for a hypothetical or real movie titled "${title}". 
 The JSON must have the following keys exactly:
