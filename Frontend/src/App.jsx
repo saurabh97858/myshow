@@ -14,6 +14,7 @@ import Favourite from "./pages/Favourite";
 import TrendingMovies from "./pages/TrendingMovies";
 import { Toaster } from "react-hot-toast";
 import { SignIn, SignUp } from "@clerk/clerk-react";
+import AIChatbot from "./components/AIChatbot";
 
 import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
@@ -47,6 +48,7 @@ const App = () => {
     <>
       <Toaster position="top-center" toastOptions={{ style: { zIndex: 999999, marginTop: '70px', background: '#333', color: '#fff' } }} />
       {!isAdminRoute && !isSeatLayoutRoute && !isMovieDetailsRoute && !isHelpCenterRoute && !isExperiencesRoute && <Navbar />}
+      {!isAdminRoute && !location.pathname.startsWith('/sign') && <AIChatbot />}
 
       <Routes>
         {/* Main App Routes */}

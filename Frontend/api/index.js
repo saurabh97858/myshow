@@ -17,6 +17,7 @@ import notificationRouter from '../server/routes/notificationRoutes.js';
 import reviewRouter from '../server/routes/reviewRoutes.js';
 import experienceRouter from '../server/routes/experienceRoutes.js';
 import analyticsRouter from '../server/routes/analyticsRoutes.js';
+import aiRouter from '../server/routes/aiRoutes.js';
 
 const app = express();
 
@@ -51,5 +52,6 @@ app.use('/api/notification', notificationRouter);
 app.use('/api/review', reviewRouter);
 app.use('/api/experience', experienceRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/ai', aiRouter);
 
 export default app;

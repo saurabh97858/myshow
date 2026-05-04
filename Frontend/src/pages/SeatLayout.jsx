@@ -125,6 +125,57 @@ const SeatLayout = () => {
     });
   };
 
+  const handleAutoSuggest = () => {
+    // Flatten rows
+    const allRows = groupRows.flat();
+    const targetRows = ["F", "E", "D", "G", "C", "H", "B", "A"]; // Priority order
+    const requiredSeats = 2; // Suggesting a pair 
+
+    let bestPair = null;
+
+    for (const row of targetRows) {
+        if (!allRows.includes(row)) continue;
+        
+        // Find available seats in this row
+        const centerSeats = [4, 5, 6, 7];
+        let availableInRow = [];
+        for (let i = 1; i <= 10; i++) {
+            if (!occupiedSeats.includes(`${row}${i}`)) {
+                availableInRow.push(i);
+            }
+        }
+
+        // Find best pair
+        let bestScore = -1;
+        for (let i = 0; i <= availableInRow.length - requiredSeats; i++) {
+            const current = availableInRow[i];
+            const next = availableInRow[i+1];
+            
+            // Check if contiguous
+            if (next === current + 1) {
+                // Score based on how many center seats are included
+                let score = 0;
+                if (centerSeats.includes(current)) score++;
+                if (centerSeats.includes(next)) score++;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestPair = [`${row}${current}`, `${row}${next}`];
+                }
+            }
+        }
+        
+        if (bestPair) break; // Found a pair in the highest priority row
+    }
+
+    if (bestPair) {
+        setSelectedSeats(bestPair);
+        toast.success("AI Auto-Suggested the Best Seats!");
+    } else {
+        toast.error("Couldn't find an ideal pair of seats.");
+    }
+  };
+
   // Snacks Logic
   const updateSnack = (id, delta) => {
     setFoodItems(prev => prev.map(item => {
@@ -253,6 +304,18 @@ const SeatLayout = () => {
               <span className="text-gray-500">₹{show.priceVIP}</span>
             </div>
           </div>
+          {show.dynamicPricingApplied && (
+            <div className="hidden md:flex items-center gap-1 text-[9px] bg-red-500/20 text-red-400 border border-red-500/50 px-2 py-1 rounded-full font-bold shadow-lg shadow-red-500/10">
+              🔥 Surge Pricing Active
+            </div>
+          )}
+          <button
+              onClick={handleAutoSuggest}
+              className="hidden md:flex items-center gap-1 text-[10px] bg-primary/20 text-primary border border-primary/50 px-3 py-1 rounded-full hover:bg-primary/30 transition-all shadow-lg shadow-primary/20 font-bold"
+          >
+              <Sparkles size={12} />
+              Auto-Suggest
+          </button>
           <span className="text-[11px] bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30 px-3 py-1 rounded-full font-medium">
             <span className="text-primary font-bold">{selectedSeats.length}</span> Selected
           </span>

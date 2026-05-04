@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Title from "../../components/admin/Title";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
-import { CalendarIcon, ClockIcon, IndianRupeeIcon, LanguagesIcon, StarIcon } from "lucide-react";
+import { CalendarIcon, ClockIcon, IndianRupeeIcon, LanguagesIcon, StarIcon, Sparkles } from "lucide-react";
 
 const AddMovie = () => {
     const { axios, getToken, fetchMovies } = useAppContext();
@@ -24,6 +24,39 @@ const AddMovie = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleAIFill = async () => {
+        if (!formData.title) return toast.error("Please enter a Movie Title first");
+        
+        try {
+            setLoading(true);
+            const token = await getToken();
+            const { data } = await axios.post("/api/ai/generate-movie", 
+                { title: formData.title },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            if (data.success && data.movieDetails) {
+                const aiData = data.movieDetails;
+                setFormData(prev => ({
+                    ...prev,
+                    description: aiData.description || prev.description,
+                    language: aiData.language || prev.language,
+                    genres: aiData.genres || prev.genres,
+                    duration: aiData.duration || prev.duration,
+                    casts: aiData.casts || prev.casts
+                }));
+                toast.success("AI auto-filled details successfully!");
+            } else {
+                toast.error(data.message || "Failed to generate details");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("AI Generation failed");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -134,15 +167,27 @@ const AddMovie = () => {
                     <label className="block text-sm font-medium mb-2">
                         Movie Title <span className="text-red-500">*</span>
                     </label>
-                    <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        placeholder="Enter movie title"
-                        className="w-full bg-transparent border border-gray-600 rounded-md px-4 py-2 outline-none focus:border-primary transition-all"
-                        required
-                    />
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleChange}
+                            placeholder="Enter movie title"
+                            className="flex-1 bg-transparent border border-gray-600 rounded-md px-4 py-2 outline-none focus:border-primary transition-all"
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={handleAIFill}
+                            disabled={loading || !formData.title}
+                            className="bg-primary/20 text-primary border border-primary/50 px-3 md:px-4 flex items-center gap-2 rounded hover:bg-primary/30 transition-all disabled:opacity-50 whitespace-nowrap"
+                        >
+                            <Sparkles className="w-4 h-4" />
+                            <span className="hidden md:inline">Auto-Fill with AI</span>
+                            <span className="md:hidden">AI</span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Description */}
