@@ -5,6 +5,7 @@ import Theater from '../models/Theater.js';
 import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
+import { Readable } from 'stream';
 
 // Bulk upload movies from CSV
 export const bulkUploadMovies = async (req, res) => {
@@ -19,7 +20,7 @@ export const bulkUploadMovies = async (req, res) => {
         const results = [];
         const errors = [];
 
-        fs.createReadStream(req.file.path)
+        Readable.from(req.file.buffer)
             .pipe(csv())
             .on('data', (row) => {
                 results.push(row);
@@ -52,8 +53,6 @@ export const bulkUploadMovies = async (req, res) => {
                     }
                 }
 
-                // Clean up uploaded file
-                fs.unlinkSync(req.file.path);
 
                 res.json({
                     success: true,

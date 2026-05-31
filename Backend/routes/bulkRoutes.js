@@ -12,7 +12,7 @@ import {
 const router = express.Router();
 
 // Configure multer for file uploads
-const upload = multer({ dest: 'uploads/bulk/' });
+const upload = multer({ storage: multer.memoryStorage() });
 
 // All bulk routes require admin authentication
 router.use(requireAuth(), isAdmin);

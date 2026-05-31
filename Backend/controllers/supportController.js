@@ -3,15 +3,7 @@ import multer from 'multer';
 import path from 'path';
 
 // Configure multer for file storage
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
+const storage = multer.memoryStorage();
 
 export const upload = multer({
     storage: storage,
@@ -35,7 +27,8 @@ export const createTicket = async (req, res) => {
         let attachment = null;
 
         if (req.file) {
-            attachment = `/uploads/${req.file.filename}`;
+            const base64Data = req.file.buffer.toString('base64');
+            attachment = `data:${req.file.mimetype};base64,${base64Data}`;
         }
 
         const newTicket = new Support({
