@@ -16,6 +16,27 @@ const MovieDetails = () => {
   const [movie, setMovie] = useState(null);
   const [dateTime, setDateTime] = useState({});
   const [loading, setLoading] = useState(true);
+  const [showTrailerModal, setShowTrailerModal] = useState(false);
+
+  const trailerMap = {
+    "guardians of the galaxy": "d96alJ7z1GE",
+    "avengers": "hA6hLD_IR68",
+    "spider-man": "JfVOs4VSpmA",
+    "interstellar": "zSWdZAIGM3I",
+    "dune": "n9DwoQ7HWvI",
+    "avatar": "5PSNL1q3AVY",
+    "oppenheimer": "uYPbbksJxIg",
+    "barbie": "pBk4NYhWNMM"
+  };
+
+  const getTrailerVideoId = (title) => {
+    if (!title) return "hA6hLD_IR68";
+    const lowerTitle = title.toLowerCase();
+    for (const key of Object.keys(trailerMap)) {
+      if (lowerTitle.includes(key)) return trailerMap[key];
+    }
+    return "hA6hLD_IR68"; // Fallback
+  };
 
   // Booking state
   const [showBooking, setShowBooking] = useState(false);
@@ -356,7 +377,10 @@ const MovieDetails = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2">
-                <button className="flex items-center gap-2 px-6 py-3 bg-gray-800/80 hover:bg-gray-700 text-white transition rounded-full font-medium backdrop-blur">
+                <button 
+                  onClick={() => setShowTrailerModal(true)}
+                  className="flex items-center gap-2 px-6 py-3 bg-gray-800/80 hover:bg-gray-700 text-white transition rounded-full font-medium backdrop-blur"
+                >
                   <PlayCircleIcon className="w-5 h-5" />
                   Watch Trailer
                 </button>
@@ -888,6 +912,37 @@ const MovieDetails = () => {
         </div >
       )
       }
+
+      {/* YouTube Trailer Playback Modal */}
+      {showTrailerModal && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-10 animate-fade-in"
+          onClick={() => setShowTrailerModal(false)}
+        >
+          <div 
+            className="w-full max-w-4xl aspect-video bg-black rounded-2xl overflow-hidden border border-white/10 relative shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Embed Player */}
+            <iframe
+              className="w-full h-full"
+              src={`https://www.youtube.com/embed/${getTrailerVideoId(movie.title)}?autoplay=1&mute=0`}
+              title={`${movie.title} Trailer`}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+
+            {/* Close Button Overlay */}
+            <button
+              onClick={() => setShowTrailerModal(false)}
+              className="absolute -top-3 -right-3 md:top-4 md:right-4 bg-black/60 hover:bg-primary text-white p-2 rounded-full backdrop-blur-md transition-all border border-white/10"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+      )}
     </div >
   );
 };

@@ -6,31 +6,38 @@ export const chatWithAI = async (req, res) => {
         const { prompt } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
         
-        console.log(`🤖 [AI Chat] Request received. Key configured: ${!!apiKey}`);
+        console.log(`🤖 [AI Chat] Request received. Key configured: ${!!apiKey}, Prompt length: ${prompt?.length}`);
 
         if (!apiKey) {
             return res.status(500).json({ success: false, message: "Gemini API key is not configured in .env" });
         }
 
+        if (!prompt || typeof prompt !== 'string') {
+            return res.status(400).json({ success: false, message: "Prompt is required" });
+        }
+
         const genAI = new GoogleGenerativeAI(apiKey);
         
-        // Try Flash first, fallback to Pro if it fails
-        let model;
-        try {
-            console.log("🤖 [AI Chat] Attempting with gemini-1.5-flash...");
-            model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const result = await model.generateContent(prompt);
-            const text = result.response.text();
-            return res.json({ success: true, text });
-        } catch (flashError) {
-            console.warn("⚠️ [AI Chat] Flash model failed, falling back to gemini-pro:", flashError.message);
-            model = genAI.getGenerativeModel({ model: "gemini-pro" });
-            const result = await model.generateContent(prompt);
-            const text = result.response.text();
-            return res.json({ success: true, text });
+        const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro'];
+        let lastError = null;
+
+        for (const modelName of models) {
+            try {
+                console.log(`🤖 [AI Chat] Trying model: ${modelName}...`);
+                const model = genAI.getGenerativeModel({ model: modelName });
+                const result = await model.generateContent(prompt);
+                const text = result.response.text();
+                console.log(`✅ [AI Chat] Success with ${modelName}, response length: ${text.length}`);
+                return res.json({ success: true, text });
+            } catch (err) {
+                console.warn(`⚠️ [AI Chat] ${modelName} failed:`, err.message);
+                lastError = err;
+            }
         }
+
+        throw lastError || new Error('All AI models failed');
     } catch (error) {
-        console.error("❌ AI Chat Critical Error:", error);
+        console.error("❌ AI Chat Critical Error:", error.message);
         res.json({ success: false, message: "Failed to communicate with AI: " + error.message });
     }
 };
@@ -60,14 +67,22 @@ Only return the raw JSON, do not wrap it in markdown code blocks.`;
         let model;
         let textResponse;
         try {
-            model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            console.log("🤖 [AI Generate] Attempting with gemini-2.0-flash...");
+            model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
             const result = await model.generateContent(prompt);
             textResponse = result.response.text();
-        } catch (fError) {
-            console.warn("⚠️ [AI Generate] Flash failed, fallback to Pro:", fError.message);
-            model = genAI.getGenerativeModel({ model: "gemini-pro" });
-            const result = await model.generateContent(prompt);
-            textResponse = result.response.text();
+        } catch (f2Error) {
+            console.warn("⚠️ [AI Generate] Gemini 2.0 Flash failed, falling back to gemini-1.5-flash:", f2Error.message);
+            try {
+                model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const result = await model.generateContent(prompt);
+                textResponse = result.response.text();
+            } catch (fError) {
+                console.warn("⚠️ [AI Generate] Flash 1.5 failed, fallback to Pro:", fError.message);
+                model = genAI.getGenerativeModel({ model: "gemini-pro" });
+                const result = await model.generateContent(prompt);
+                textResponse = result.response.text();
+            }
         }
         
         // Clean markdown backticks just in case

@@ -64,7 +64,7 @@ input[type="number"] {
 
 @layer utilities {
   .animate-slide-up {
-    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-fade-in {
@@ -76,17 +76,51 @@ input[type="number"] {
   }
 
   .animate-pulse-slow {
-    animation: pulseSlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: pulseSlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
   .animate-spin-slow {
     animation: spinSlow 3s linear infinite;
   }
+
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+    background-size: 200% 100%;
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .animate-glow-pulse {
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+
+  /* Glassmorphism card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Premium gradient text */
+  .gradient-text-primary {
+    background: linear-gradient(135deg, #F84565, #c850c0, #4158d0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Subtle glow border */
+  .glow-border-primary {
+    box-shadow: 0 0 0 1px rgba(248, 69, 101, 0.3), 0 0 20px rgba(248, 69, 101, 0.1);
+  }
 }
 
 @keyframes slideUp {
   from {
-    transform: translateY(20px);
+    transform: translateY(24px);
     opacity: 0;
   }
 
@@ -108,7 +142,7 @@ input[type="number"] {
 
 @keyframes scaleIn {
   from {
-    transform: scale(0.95);
+    transform: scale(0.94);
     opacity: 0;
   }
 
@@ -119,14 +153,11 @@ input[type="number"] {
 }
 
 @keyframes pulseSlow {
-
-  0%,
-  100% {
+  0%, 100% {
     opacity: 1;
   }
-
   50% {
-    opacity: 0.7;
+    opacity: 0.65;
   }
 }
 
@@ -134,8 +165,22 @@ input[type="number"] {
   from {
     transform: rotate(0deg);
   }
-
   to {
     transform: rotate(360deg);
   }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(248, 69, 101, 0.3); }
+  50% { box-shadow: 0 0 35px rgba(248, 69, 101, 0.6), 0 0 60px rgba(248, 69, 101, 0.15); }
 }

@@ -262,85 +262,87 @@ const SeatLayout = () => {
         <div className="absolute bottom-20 right-1/4 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[150px] animate-pulse delay-1000"></div>
       </div>
 
-      {/* ULTRA COMPACT HEADER */}
-      <div className="relative z-10 bg-black/60 backdrop-blur-xl border-b border-white/5 px-6 py-2 flex justify-between items-center shrink-0 shadow-lg shadow-black/50">
+      {/* COMPACT HEADER */}
+      <div className="relative z-10 bg-black/70 backdrop-blur-2xl border-b border-white/8 px-4 sm:px-6 py-3 flex justify-between items-center shrink-0 shadow-2xl shadow-black/60">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="p-1.5 hover:bg-white/10 rounded-full transition-all hover:scale-110 active:scale-95"
+            className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-xl transition-all hover:scale-110 active:scale-95 border border-white/10"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={15} />
           </button>
           <div>
-            <h1 className="text-sm font-bold leading-tight bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            <h1 className="text-sm font-bold leading-tight bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent max-w-[200px] truncate">
               {show.movie?.title}
             </h1>
             <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-[9px] text-gray-500 flex items-center gap-1">
-                <MapPin size={8} className="text-primary" />
+              <p className="text-[10px] text-gray-500 flex items-center gap-1">
+                <MapPin size={9} className="text-primary" />
                 {show.theater?.name}
               </p>
-              <span className="text-gray-700">•</span>
-              <p className="text-[9px] text-gray-500 flex items-center gap-1">
-                <Clock size={8} className="text-primary" />
+              <span className="text-gray-700 text-[10px]">•</span>
+              <p className="text-[10px] text-gray-500 flex items-center gap-1">
+                <Clock size={9} className="text-primary" />
                 {new Date(show.showDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Category Pills - Horizontal */}
-          <div className="hidden lg:flex gap-2 text-[9px]">
-            <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-full border border-white/10">
-              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500"></div>
-              <span className="text-gray-500">₹{show.priceStandard}</span>
+        <div className="flex items-center gap-2">
+          {/* Category Price Pills */}
+          <div className="hidden lg:flex gap-2 text-[10px]">
+            <div className="flex items-center gap-1.5 bg-blue-500/10 px-2.5 py-1.5 rounded-full border border-blue-500/30">
+              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400"></div>
+              <span className="text-blue-300 font-semibold">₹{show.priceStandard}</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-full border border-white/10">
-              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
-              <span className="text-gray-500">₹{show.pricePremium}</span>
+            <div className="flex items-center gap-1.5 bg-purple-500/10 px-2.5 py-1.5 rounded-full border border-purple-500/30">
+              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-purple-400 to-pink-400"></div>
+              <span className="text-purple-300 font-semibold">₹{show.pricePremium}</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-full border border-white/10">
-              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500"></div>
-              <span className="text-gray-500">₹{show.priceVIP}</span>
+            <div className="flex items-center gap-1.5 bg-amber-500/10 px-2.5 py-1.5 rounded-full border border-amber-500/30">
+              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400"></div>
+              <span className="text-amber-300 font-semibold">₹{show.priceVIP}</span>
             </div>
           </div>
           {show.dynamicPricingApplied && (
-            <div className="hidden md:flex items-center gap-1 text-[9px] bg-red-500/20 text-red-400 border border-red-500/50 px-2 py-1 rounded-full font-bold shadow-lg shadow-red-500/10">
-              🔥 Surge Pricing Active
+            <div className="hidden md:flex items-center gap-1 text-[10px] bg-red-500/15 text-red-400 border border-red-500/40 px-2.5 py-1.5 rounded-full font-bold">
+              🔥 Surge
             </div>
           )}
           <button
               onClick={handleAutoSuggest}
-              className="hidden md:flex items-center gap-1 text-[10px] bg-primary/20 text-primary border border-primary/50 px-3 py-1 rounded-full hover:bg-primary/30 transition-all shadow-lg shadow-primary/20 font-bold"
+              className="hidden md:flex items-center gap-1.5 text-[10px] bg-primary/15 text-primary border border-primary/40 px-3 py-1.5 rounded-full hover:bg-primary/25 transition-all font-bold"
           >
-              <Sparkles size={12} />
+              <Sparkles size={11} />
               Auto-Suggest
           </button>
-          <span className="text-[11px] bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30 px-3 py-1 rounded-full font-medium">
-            <span className="text-primary font-bold">{selectedSeats.length}</span> Selected
-          </span>
+          <div className="bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30 px-3 py-1.5 rounded-full">
+            <span className="text-primary font-black text-sm">{selectedSeats.length}</span>
+            <span className="text-gray-400 text-[10px] font-medium ml-1">Selected</span>
+          </div>
         </div>
       </div>
 
-      {/* MAIN CONTENT - WIDER & SHORTER */}
-      <div className="relative z-10 flex-1 overflow-hidden flex items-center justify-center px-8 pb-20">
+      {/* MAIN CONTENT */}
+      <div className="relative z-10 flex-1 overflow-hidden flex items-center justify-center px-4 sm:px-8 pb-20">
 
         <div className="w-full max-w-7xl">
 
-          {/* SCREEN - COMPACT */}
-          <div className="w-full mb-3">
-            <div className="relative">
-              <div className="absolute inset-0 flex justify-center">
-                <div className="w-[50%] h-4 bg-gradient-to-b from-primary/30 via-primary/5 to-transparent blur-xl"></div>
+          {/* SCREEN - CINEMATIC */}
+          <div className="w-full mb-6 relative select-none">
+            <div className="relative w-[70%] mx-auto">
+              {/* Projection beams */}
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-[90%] h-16">
+                <div className="absolute inset-0 bg-gradient-to-b from-primary/25 via-primary/8 to-transparent blur-xl rounded-full" />
               </div>
-              <div className="relative w-[60%] mx-auto">
-                <div className="h-3 border-t-[2px] border-gradient-to-r from-transparent via-primary/50 to-transparent rounded-t-[80px]"
-                  style={{ borderImage: 'linear-gradient(90deg, transparent, rgb(236 72 153 / 0.5), transparent) 1' }}></div>
-              </div>
-              <p className="text-gray-600 text-[8px] uppercase tracking-[0.3em] mt-1.5 text-center font-bold">
-                ✦ Screen ✦
-              </p>
+              {/* Screen bar */}
+              <div className="w-full h-[3px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-80 shadow-[0_0_30px_8px_rgba(248,69,101,0.4)] rounded-full" />
+              {/* Shine overlay */}
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full animate-pulse-slow" />
             </div>
+            <p className="text-gray-600 text-[9px] uppercase tracking-[0.5em] font-black text-center mt-3">
+              Screen · This Way Up
+            </p>
           </div>
 
           {/* SEATS GRID - WIDE LAYOUT */}
@@ -353,16 +355,16 @@ const SeatLayout = () => {
               </div>
             )}
 
-            <div className="flex flex-col gap-1 items-center">
+            <div className="flex flex-col gap-1.5 items-center">
               {groupRows.map((rowGroup, groupIndex) => (
-                <div key={groupIndex} className="flex flex-col gap-0.5 items-center">
+                <div key={groupIndex} className="flex flex-col gap-1 items-center">
                   {rowGroup.map(rowLabel => {
                     const category = getCategory(rowLabel);
                     const categoryGradient = getCategoryColor(category);
 
                     return (
-                      <div key={rowLabel} className="flex items-center gap-2">
-                        <span className="w-4 text-right text-gray-600 text-[10px] font-bold">{rowLabel}</span>
+                      <div key={rowLabel} className="flex items-center gap-2.5">
+                        <span className="w-4 text-right text-gray-600 text-[10px] font-black">{rowLabel}</span>
                         <div className="flex gap-1">
                           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(seatNum => {
                             const seatId = `${rowLabel}${seatNum}`;
@@ -377,23 +379,24 @@ const SeatLayout = () => {
                                   onMouseEnter={() => setHoveredSeat(seatId)}
                                   onMouseLeave={() => setHoveredSeat(null)}
                                   disabled={isOccupied}
+                                  title={isOccupied ? 'Sold' : `${seatId} - ₹${getPrice(category)}`}
                                   className={`
-                                    relative w-8 h-5 rounded text-[9px] font-bold transition-all duration-200
+                                    relative w-7 h-6 rounded-t-lg text-[9px] font-bold transition-all duration-150
                                     ${isOccupied
-                                      ? 'bg-gray-900/50 text-gray-700 cursor-not-allowed border border-gray-800'
+                                      ? 'bg-gray-900/60 text-gray-700 cursor-not-allowed border border-gray-800/80'
                                       : isSelected
-                                        ? `bg-gradient-to-br ${categoryGradient} text-white scale-110 shadow-xl shadow-primary/50 animate-pulse-slow border-2 border-white/30`
-                                        : `bg-white/5 border border-white/20 hover:bg-gradient-to-br hover:${categoryGradient} hover:scale-105 hover:shadow-lg hover:border-white/50 active:scale-95`
+                                        ? `bg-gradient-to-br ${categoryGradient} text-white shadow-lg shadow-primary/40 border border-white/30 scale-110`
+                                        : `bg-white/[0.06] border border-white/20 hover:scale-110 hover:border-white/50 active:scale-95 text-gray-400 hover:text-white`
                                     }
-                                    ${hoveredSeat === seatId && !isOccupied && !isSelected ? 'ring-2 ring-primary/50' : ''}
+                                    ${hoveredSeat === seatId && !isOccupied && !isSelected ? 'ring-1 ring-primary/60 border-primary/40' : ''}
                                   `}
                                 >
                                   {seatNum}
                                   {isSelected && (
-                                    <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
+                                    <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-white rounded-full animate-ping opacity-80"></div>
                                   )}
                                 </button>
-                                {isAisle && <div className="w-3"></div>}
+                                {isAisle && <div className="w-2.5" />}
                               </React.Fragment>
                             );
                           })}
@@ -406,19 +409,19 @@ const SeatLayout = () => {
             </div>
           </div>
 
-          {/* LEGEND - INLINE */}
-          <div className="flex justify-center gap-4 mt-3 text-[9px] text-gray-500">
-            <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-full border border-white/10">
-              <div className="w-2.5 h-2.5 bg-white/10 rounded border border-white/30"></div>
+          {/* LEGEND */}
+          <div className="flex justify-center gap-3 mt-4 text-[10px] text-gray-400">
+            <div className="flex items-center gap-1.5 bg-white/[0.04] px-3 py-1.5 rounded-full border border-white/10">
+              <div className="w-3 h-3 bg-white/[0.06] rounded-t border border-white/20"></div>
               <span>Available</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-full border border-white/10">
-              <div className="w-2.5 h-2.5 bg-gradient-to-r from-primary to-purple-500 rounded shadow-lg"></div>
-              <span>Selected</span>
+            <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1.5 rounded-full border border-primary/30">
+              <div className="w-3 h-3 bg-gradient-to-br from-primary to-purple-500 rounded-t"></div>
+              <span className="text-primary">Selected</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-full border border-white/10">
-              <div className="w-2.5 h-2.5 bg-gray-900/50 rounded border border-gray-800"></div>
-              <span>Sold</span>
+            <div className="flex items-center gap-1.5 bg-white/[0.02] px-3 py-1.5 rounded-full border border-white/5">
+              <div className="w-3 h-3 bg-gray-900/60 rounded-t border border-gray-800"></div>
+              <span className="text-gray-600">Sold</span>
             </div>
           </div>
 
@@ -426,34 +429,36 @@ const SeatLayout = () => {
 
       </div>
 
-      {/* PREMIUM BOTTOM BAR - COMPACT */}
+      {/* PREMIUM BOTTOM BAR */}
       {selectedSeats.length > 0 && !showCheckout && (
-        <div className="relative z-20 fixed bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/95 to-transparent backdrop-blur-2xl border-t border-white/10 p-3 shadow-2xl">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-8">
+        <div className="relative z-20 fixed bottom-0 left-0 right-0 backdrop-blur-2xl border-t border-white/10 shadow-2xl" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.98) 60%, rgba(0,0,0,0.6) 100%)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 sm:gap-8">
               <div>
-                <p className="text-[8px] text-gray-600 uppercase tracking-wider mb-0.5 font-bold">Total Amount</p>
+                <p className="text-[9px] text-gray-600 uppercase tracking-widest mb-1 font-bold">Total Amount</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-black bg-gradient-to-r from-primary via-pink-500 to-purple-500 bg-clip-text text-transparent">
+                  <span className="text-3xl font-black bg-gradient-to-r from-primary via-pink-400 to-purple-400 bg-clip-text text-transparent">
                     ₹{selectedSeatsPrice}
                   </span>
-                  <span className="text-[10px] text-gray-600 font-medium">
+                  <span className="text-xs text-gray-500 font-medium">
                     {selectedSeats.length} {selectedSeats.length === 1 ? 'Seat' : 'Seats'}
                   </span>
                 </div>
               </div>
-              <p className="text-[10px] text-gray-700 hidden lg:block">
-                {selectedSeats.join(' • ')}
-              </p>
+              <div className="hidden lg:flex flex-wrap gap-1.5">
+                {selectedSeats.map(s => (
+                  <span key={s} className="text-[10px] font-bold bg-white/5 border border-white/15 px-2 py-0.5 rounded-full text-gray-300">{s}</span>
+                ))}
+              </div>
             </div>
             <button
               onClick={() => { setCheckoutStep(1); setShowCheckout(true); }}
-              className="group relative bg-gradient-to-r from-primary via-pink-500 to-purple-500 hover:from-purple-500 hover:to-primary px-6 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-primary/50 overflow-hidden"
+              className="group relative bg-gradient-to-r from-primary via-pink-500 to-purple-500 hover:from-purple-500 hover:to-primary px-6 sm:px-8 py-3 rounded-2xl font-bold text-sm flex items-center gap-2.5 transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-primary/40 overflow-hidden shrink-0"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-              <Sparkles size={14} className="animate-spin-slow" />
-              <span className="relative">Book Tickets</span>
-              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/15 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              <Sparkles size={14} className="animate-spin-slow relative z-10" />
+              <span className="relative z-10">Book Tickets</span>
+              <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform relative z-10" />
             </button>
           </div>
         </div>
@@ -461,23 +466,44 @@ const SeatLayout = () => {
 
       {/* CHECKOUT MODAL */}
       {showCheckout && (
-        <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-xl flex items-end md:items-center justify-center p-0 md:p-6 animate-fade-in">
-          <div className="bg-gradient-to-br from-[#0c0c0c]/95 to-[#0a0a0a]/95 backdrop-blur-2xl w-full md:max-w-md md:rounded-3xl border-t md:border border-white/10 flex flex-col max-h-[90vh] overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-2xl flex items-end md:items-center justify-center p-0 md:p-6 animate-fade-in">
+          <div className="w-full md:max-w-md md:rounded-3xl border-t md:border border-white/10 flex flex-col max-h-[92vh] overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.9)]" style={{ background: 'linear-gradient(145deg, #0e0e12, #0a0a0e)' }}>
 
-            {/* Modal Header */}
-            <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center bg-gradient-to-r from-white/[0.02] to-transparent shrink-0">
-              <div>
-                <h2 className="text-lg font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                  {checkoutStep === 1 ? "Contact Details" : checkoutStep === 2 ? "Add Snacks" : "Payment"}
-                </h2>
-                <p className="text-[10px] text-gray-500 mt-0.5">Step {checkoutStep} of 3</p>
+            {/* Modal Header + Stepper */}
+            <div className="px-5 pt-5 pb-4 border-b border-white/8 bg-gradient-to-r from-white/[0.02] to-transparent shrink-0">
+              {/* Step Progress */}
+              <div className="flex items-center gap-2 mb-4">
+                {[1,2,3].map(step => (
+                  <React.Fragment key={step}>
+                    <div className={`flex items-center justify-center w-7 h-7 rounded-full text-[11px] font-black transition-all duration-300 ${
+                      step < checkoutStep ? 'bg-green-500 text-white shadow-lg shadow-green-500/30' :
+                      step === checkoutStep ? 'bg-gradient-to-br from-primary to-purple-500 text-white shadow-lg shadow-primary/40 scale-110' :
+                      'bg-white/[0.06] border border-white/15 text-gray-500'
+                    }`}>
+                      {step < checkoutStep ? '✓' : step}
+                    </div>
+                    {step < 3 && (
+                      <div className={`flex-1 h-0.5 rounded-full transition-all duration-500 ${
+                        step < checkoutStep ? 'bg-green-500' : 'bg-white/10'
+                      }`} />
+                    )}
+                  </React.Fragment>
+                ))}
               </div>
-              <button
-                onClick={() => setShowCheckout(false)}
-                className="p-2 hover:bg-white/10 rounded-full transition-all text-gray-500 hover:text-white hover:rotate-90 duration-300"
-              >
-                <X size={16} />
-              </button>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-lg font-bold text-white">
+                    {checkoutStep === 1 ? 'Contact Details' : checkoutStep === 2 ? 'Add Snacks 🍿' : 'Payment 💳'}
+                  </h2>
+                  <p className="text-[10px] text-gray-500 mt-0.5">Step {checkoutStep} of 3</p>
+                </div>
+                <button
+                  onClick={() => setShowCheckout(false)}
+                  className="p-2 hover:bg-white/10 rounded-xl transition-all text-gray-500 hover:text-white hover:rotate-90 duration-300"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Modal Body */}

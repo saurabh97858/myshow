@@ -29,6 +29,7 @@ import analyticsRouter from './routes/analyticsRoutes.js';
 import bulkRouter from './routes/bulkRoutes.js';
 import adminApplicationRouter from './routes/adminApplicationRoutes.js';
 import adminAuthRouter from './routes/adminAuthRoutes.js';
+import aiRouter from './routes/aiRoutes.js';
 import { initializeSocket } from './services/socketService.js';
 import http from 'http';
 
@@ -136,6 +137,7 @@ app.use('/api/coupons', couponRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/bulk', bulkRouter);
 app.use('/api/admin/auth', adminAuthRouter);
+app.use('/api/ai', aiRouter);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 404 Catch-all
