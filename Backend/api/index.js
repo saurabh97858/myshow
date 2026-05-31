@@ -1,35 +1,36 @@
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
-import connectDB from './configs/db.js';
+import connectDB from '../configs/db.js';
 import { clerkMiddleware } from '@clerk/express';
 import { serve } from 'inngest/express';
-import { inngest, functions } from './inngest/index.js';
+import { inngest, functions } from '../inngest/index.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
-import { apiLimiter } from './middleware/rateLimiter.js';
+import { apiLimiter } from '../middleware/rateLimiter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-import showRouter from './routes/showRoutes.js';
-import bookingRouter from './routes/bookingRoutes.js';
-import adminRouter from './routes/adminRoutes.js';
-import userRouter from './routes/userRoutes.js';
-import movieRouter from './routes/movieRoutes.js';
-import theaterRouter from './routes/theaterRoutes.js';
-import proxyRouter from './routes/proxyRoutes.js';
-import supportRouter from './routes/supportRoutes.js';
-import experienceRouter from './routes/experienceRoutes.js';
-import notificationRouter from './routes/notificationRoutes.js';
-import reviewRouter from './routes/reviewRoutes.js';
-import couponRouter from './routes/couponRoutes.js';
-import analyticsRouter from './routes/analyticsRoutes.js';
-import bulkRouter from './routes/bulkRoutes.js';
-import adminApplicationRouter from './routes/adminApplicationRoutes.js';
-import adminAuthRouter from './routes/adminAuthRoutes.js';
-import { initializeSocket } from './services/socketService.js';
+import showRouter from '../routes/showRoutes.js';
+import bookingRouter from '../routes/bookingRoutes.js';
+import adminRouter from '../routes/adminRoutes.js';
+import userRouter from '../routes/userRoutes.js';
+import movieRouter from '../routes/movieRoutes.js';
+import theaterRouter from '../routes/theaterRoutes.js';
+import proxyRouter from '../routes/proxyRoutes.js';
+import supportRouter from '../routes/supportRoutes.js';
+import experienceRouter from '../routes/experienceRoutes.js';
+import notificationRouter from '../routes/notificationRoutes.js';
+import reviewRouter from '../routes/reviewRoutes.js';
+import couponRouter from '../routes/couponRoutes.js';
+import analyticsRouter from '../routes/analyticsRoutes.js';
+import bulkRouter from '../routes/bulkRoutes.js';
+import adminApplicationRouter from '../routes/adminApplicationRoutes.js';
+import adminAuthRouter from '../routes/adminAuthRoutes.js';
+import aiRouter from '../routes/aiRoutes.js';
+import { initializeSocket } from '../services/socketService.js';
 import http from 'http';
 
 const app = express();
@@ -37,9 +38,6 @@ const port = process.env.PORT || 3000;
 
 // Create HTTP server for Socket.IO
 const server = http.createServer(app);
-
-// NOTE: top-level await connectDB() is removed for Vercel compatibility.
-// Connection is now handled by the 'Ensure DB Connection Middleware' below.
 
 // 🔌 Initialize Socket.IO (Disabled for Vercel/Production as it is not supported)
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
@@ -64,13 +62,14 @@ app.use(
     origin: [
       "https://myshow-su42.vercel.app",
       "https://myshow-wine.vercel.app",
+      "https://myshow-livid.vercel.app",
       "http://localhost:5173",
       "http://localhost:5174",
       "http://localhost:5175",
       "http://localhost:5176",
       "http://localhost:5177",
       /^http:\/\/localhost:517\d$/, // Allow localhost:5170-5179
-      /^https:\/\/myshow-.*\.vercel\.app$/ // Allow all Vercel previews
+      /^https:\/\/.*\.vercel\.app$/ // Allow all Vercel previews
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -79,9 +78,8 @@ app.use(
 );
 
 // 🔒 Security Middlewares
-// Helmet helps secure Express apps by setting various HTTP headers
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow loading resources from different origins
+  crossOriginResourcePolicy: { policy: "cross-origin" },
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
@@ -92,21 +90,16 @@ app.use(helmet({
   },
 }));
 
-app.use(express.json({ limit: '10mb' })); // Limit JSON payload size
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ✅ Clerk middleware
-console.log("🔑 [Server] Clerk Init - PublishableKey:", !!process.env.CLERK_PUBLISHABLE_KEY, "SecretKey:", !!process.env.CLERK_SECRET_KEY);
+console.log("🔑 [Server] Clerk Serverless Init - PublishableKey:", !!process.env.CLERK_PUBLISHABLE_KEY, "SecretKey:", !!process.env.CLERK_SECRET_KEY);
 app.use(clerkMiddleware());
-
-// NOTE: Clerk's req.auth is a Proxy — it supports BOTH:
-//   req.auth()        → function call (used by getAuth(req))
-//   req.auth.userId   → property access (backwards compat)
-// Do NOT overwrite req.auth anywhere or getAuth(req) will crash.
 
 app.use((req, res, next) => {
     if (req.headers.authorization) {
-        console.log(`🛰️ [Server] Auth Header detected for ${req.url} (Length: ${req.headers.authorization.length}) | Start: ${req.headers.authorization.substring(0, 20)}...`);
+        console.log(`🛰️ [Server] Auth Header detected for ${req.url} (Length: ${req.headers.authorization.length})`);
     }
     next();
 });
@@ -116,7 +109,7 @@ app.use('/api/', apiLimiter);
 
 // ✅ Routes
 app.get('/', (req, res) => {
-    console.log(`🏠 [Server] Root route accessed from ${req.ip} | Method: ${req.method} | OriginalURL: ${req.originalUrl}`);
+    console.log(`🏠 [Server] Root route accessed from ${req.ip} | Method: ${req.method}`);
     res.send('Server is Live!');
 });
 app.use('/api/inngest', serve({ client: inngest, functions }));
@@ -136,7 +129,8 @@ app.use('/api/coupons', couponRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/bulk', bulkRouter);
 app.use('/api/admin/auth', adminAuthRouter);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/ai', aiRouter);
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // 404 Catch-all
 app.use((req, res) => {
@@ -144,8 +138,8 @@ app.use((req, res) => {
     res.status(404).json({ success: false, message: `Route ${req.method} ${req.url} not found on this server.` });
 });
 
-// ✅ Start server
-if (process.env.NODE_ENV !== 'production') {
+// ✅ Start server (Only when running locally/Render, Vercel handles server listening under-the-hood)
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   server.listen(port, () =>
     console.log(`✅ Server running at http://localhost:${port}`)
   );
