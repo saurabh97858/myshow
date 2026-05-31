@@ -18,7 +18,7 @@ export const chatWithAI = async (req, res) => {
 
         const genAI = new GoogleGenerativeAI(apiKey);
         
-        const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro'];
+        const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro'];
         let lastError = null;
 
         for (const modelName of models) {
@@ -67,21 +67,28 @@ Only return the raw JSON, do not wrap it in markdown code blocks.`;
         let model;
         let textResponse;
         try {
-            console.log("🤖 [AI Generate] Attempting with gemini-2.0-flash...");
-            model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            console.log("🤖 [AI Generate] Attempting with gemini-2.5-flash...");
+            model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             const result = await model.generateContent(prompt);
             textResponse = result.response.text();
-        } catch (f2Error) {
-            console.warn("⚠️ [AI Generate] Gemini 2.0 Flash failed, falling back to gemini-1.5-flash:", f2Error.message);
+        } catch (f25Error) {
+            console.warn("⚠️ [AI Generate] Gemini 2.5 Flash failed, falling back to gemini-2.0-flash:", f25Error.message);
             try {
-                model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
                 const result = await model.generateContent(prompt);
                 textResponse = result.response.text();
-            } catch (fError) {
-                console.warn("⚠️ [AI Generate] Flash 1.5 failed, fallback to Pro:", fError.message);
-                model = genAI.getGenerativeModel({ model: "gemini-pro" });
-                const result = await model.generateContent(prompt);
-                textResponse = result.response.text();
+            } catch (f2Error) {
+                console.warn("⚠️ [AI Generate] Gemini 2.0 Flash failed, falling back to gemini-1.5-flash:", f2Error.message);
+                try {
+                    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                    const result = await model.generateContent(prompt);
+                    textResponse = result.response.text();
+                } catch (fError) {
+                    console.warn("⚠️ [AI Generate] Flash 1.5 failed, fallback to Pro:", fError.message);
+                    model = genAI.getGenerativeModel({ model: "gemini-pro" });
+                    const result = await model.generateContent(prompt);
+                    textResponse = result.response.text();
+                }
             }
         }
         
